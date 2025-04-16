@@ -5,7 +5,7 @@ import {
     SignedOut,
     UserButton
   } from '@clerk/nextjs'
-  import '@/styles/globals.css'
+  import '@/app/global.css'
   export default function App({ Component, pageProps }: any) {
     return (
       <ClerkProvider>
