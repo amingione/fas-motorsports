@@ -31,13 +31,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <ClerkProvider
-      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
-      routerPush={(url) => window.location.assign(url)}
-      routerReplace={(url) => window.location.replace(url)}
-      isSatellite={false}
-      proxyUrl={process.env.NEXT_PUBLIC_CLERK_PROXY_URL || ''}
-    >
+    <ClerkProvider>
       <html lang="en">
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
           <header className="flex justify-end items-center p-4 gap-4 h-16">
