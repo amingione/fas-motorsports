@@ -4,19 +4,23 @@ import {
 import '@/app/global.css'
 import '@/app/theme-fas.css'
 import Head from 'next/head'
+import type { AppProps } from 'next/app';
+import Link from 'next/link';
 
-export default function App({ Component, pageProps }: any) {
+export default function App({ Component, pageProps }: AppProps) {
   return (
     <ClerkProvider>
       <Head>
         <link rel="icon" href="/images/New Red FAS Logo.png" />
-        <a
+      </Head>
+      <div className="absolute top-16 left-4 z-50">
+        <Link
           href="/dashboard"
-          className="absolute top-15 left-4 px-8 py-4 border font-ethno border-white text-white font-bold uppercase hover:bg-white hover:text-black transition-all"
+          className="px-8 py-4 border font-ethno border-white text-white font-bold uppercase hover:bg-white hover:text-black transition-all"
         >
           Dashboard
-        </a>
-      </Head>
+        </Link>
+      </div>
       <main className="min-h-screen bg-black text-white font-captain">
         <header className="p-4 flex justify-end space-x-4"></header>
         <Component {...pageProps} />

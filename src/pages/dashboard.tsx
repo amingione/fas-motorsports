@@ -59,7 +59,7 @@ export default function Dashboard() {
         </div>
         <div className="border border-white/10 rounded-lg p-6 bg-white/5 shadow-md">
           <h2 className="text-xl font-kwajong text-white mb-4">Saved Quotes</h2>
-          <p className="text-sm text-gray-400">You haven’t saved any quotes yet. Start building one through the FAS garage.</p>
+          <p className="text-sm text-gray-400">You haven&apos;t saved any quotes yet. Start building one through the FAS garage.</p>
         </div>
       </div>
     </div>
