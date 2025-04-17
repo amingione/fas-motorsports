@@ -1,22 +1,23 @@
 import './global.css';
 import './theme-fas.css';
+import Link from 'next/link';
 
 export default function Home() {
   return (
     <>
       <header className="absolute top-4 right-6 flex space-x-4 z-50">
-        <a
+        <Link
           href="/sign-in"
           className="text-white font-ethno text-sm hover:text-primary transition"
         >
           Sign In
-        </a>
-        <a
+        </Link>
+        <Link
           href="/sign-up"
           className="text-white font-ethno text-sm hover:text-primary transition"
         >
           Sign Up
-        </a>
+        </Link>
       </header>
       <main
         className="flex flex-col items-center justify-center h-screen px-4 text-center bg-cover bg-center"
@@ -29,12 +30,12 @@ export default function Home() {
           Motorsports
         </h1>
 
-        <a
+        <Link
           href="/dashboard"
           className="px-6 py-3 text-white bg-primary hover:bg-white hover:text-primary border-2 border-primary rounded-md font-kwajong tracking-widest transition-all duration-300 shadow-lg"
         >
           GO TO DASHBOARD
-        </a>
+        </Link>
       </main>
     </>
   );

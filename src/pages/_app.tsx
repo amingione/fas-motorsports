@@ -1,9 +1,5 @@
 import {
-  ClerkProvider,
-  SignInButton,
-  SignedIn,
-  SignedOut,
-  UserButton
+  ClerkProvider
 } from '@clerk/nextjs'
 import '@/app/global.css'
 import '@/app/theme-fas.css'
@@ -22,14 +18,7 @@ export default function App({ Component, pageProps }: any) {
         </a>
       </Head>
       <main className="min-h-screen bg-black text-white font-captain">
-        <header className="p-4 flex justify-end space-x-4">
-          <SignedOut>
-            <SignInButton />
-          </SignedOut>
-          <SignedIn>
-            <UserButton />
-          </SignedIn>
-        </header>
+        <header className="p-4 flex justify-end space-x-4"></header>
         <Component {...pageProps} />
       </main>
     </ClerkProvider>
