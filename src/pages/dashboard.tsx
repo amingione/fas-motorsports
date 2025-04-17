@@ -43,7 +43,7 @@ export default function Dashboard() {
         <h1 className="text-4xl text-primary font-borg tracking-wider">F.a.S.</h1>
         <h1 className="text-4xl text-white font-ethno tracking-wider">Motorsports</h1>
         <p className="text-lg font-light text-gray-300">
-          Welcome back! Below you'll find your recent orders, saved quotes, and current builds.
+          Welcome back! Below you&apos;ll find your recent orders, saved quotes, and current builds.
         </p>
         <div className="border border-white/10 rounded-lg p-6 bg-white/5 shadow-md">
           <h2 className="text-xl font-kwajong text-white mb-4">Your Orders</h2>
