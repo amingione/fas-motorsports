@@ -1,21 +1,32 @@
 import {
-    ClerkProvider,
-    SignInButton,
-    SignedIn,
-    SignedOut,
-    UserButton
-  } from '@clerk/nextjs'
-  import '@/app/global.css'
-  export default function App({ Component, pageProps }: any) {
-    return (
-      <ClerkProvider>
-        <SignedOut>
-          <SignInButton />
-        </SignedOut>
-        <SignedIn>
-          <UserButton />
-        </SignedIn>
+  ClerkProvider,
+  SignInButton,
+  SignedIn,
+  SignedOut,
+  UserButton
+} from '@clerk/nextjs'
+import '@/app/global.css'
+import '@/app/theme-fas.css'
+import Head from 'next/head'
+
+export default function App({ Component, pageProps }: any) {
+  return (
+    <ClerkProvider>
+      <Head>
+        <link rel="icon" href="/images/New Red FAS Logo.png" />
+        <a href="/dashboard" className="btn btn-outline">Dashboard</a>
+      </Head>
+      <main className="min-h-screen bg-black text-white font-captain">
+        <header className="p-4 flex justify-end space-x-4">
+          <SignedOut>
+            <SignInButton />
+          </SignedOut>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+        </header>
         <Component {...pageProps} />
-      </ClerkProvider>
-    )
-  }
+      </main>
+    </ClerkProvider>
+  )
+}

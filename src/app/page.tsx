@@ -1,16 +1,41 @@
-import Image from "next/image";
-import '../app/global.css';
-import '../app/theme-fas.css';
+import './global.css';
+import './theme-fas.css';
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black text-white p-8">
-      <div className="max-w-sm w-full rounded-lg shadow-xl bg-white/5 p-6 border border-white/10">
-        <h1 className="text-center font-captain text-primary text-xl tracking-wide mb-4 uppercase">
-          F.A.S. Motorsports
+    <>
+      <header className="absolute top-4 right-6 flex space-x-4 z-50">
+        <a
+          href="/sign-in"
+          className="text-white font-ethno text-sm hover:text-primary transition"
+        >
+          Sign In
+        </a>
+        <a
+          href="/sign-up"
+          className="text-white font-ethno text-sm hover:text-primary transition"
+        >
+          Sign Up
+        </a>
+      </header>
+      <main
+        className="flex flex-col items-center justify-center h-screen px-4 text-center bg-cover bg-center"
+        style={{ backgroundImage: "url('/images/about page background FAS.png')" }}
+      >
+        <h1 className="text-primary font-borg text-4xl tracking-[.3em] mb-8 drop-shadow-md">
+          F.a.S.
         </h1>
-        <div id="clerk-signin" className="mt-4" />
-      </div>
-    </div>
+        <h1 className="text-white font-ethno text-4xl tracking-[.3em] mb-8 drop-shadow-md">
+          Motorsports
+        </h1>
+
+        <a
+          href="/dashboard"
+          className="px-6 py-3 text-white bg-primary hover:bg-white hover:text-primary border-2 border-primary rounded-md font-kwajong tracking-widest transition-all duration-300 shadow-lg"
+        >
+          GO TO DASHBOARD
+        </a>
+      </main>
+    </>
   );
 }
