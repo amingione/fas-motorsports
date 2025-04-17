@@ -1,8 +1,45 @@
 import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs'
+import { useEffect, useState } from 'react';
+import { useUser } from '@clerk/nextjs';
 
 export default function Dashboard() {
+  interface Order {
+    _id: string;
+    title: string;
+    status: string;
+  }
+
+  const [orders, setOrders] = useState<Order[]>([]);
+
+  const { user } = useUser();
+
+  useEffect(() => {
+    async function syncAndFetchOrders() {
+      if (!user) return;
+
+      // Sync user to Sanity
+      await fetch('/api/sync-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          email: user.primaryEmailAddress?.emailAddress,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        }),
+      });
+
+      // Fetch user's orders
+      const res = await fetch('/api/userData');
+      const data = await res.json();
+      setOrders(data.orders);
+    }
+
+    syncAndFetchOrders();
+  }, [user]);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black text-white px-6 py-12">
+    <div className="min-h-screen bg-cover bg-center text-white px-6 py-12" style={{ backgroundImage: "url('/images/about page background FAS.png')" }}>
       <SignedIn>
         <div className="max-w-4xl mx-auto space-y-6">
           <h1 className="text-4xl text-primary font-borg tracking-wider">F.a.S.</h1><h1 className="text-4xl text-white font-ethno tracking-wider">Motorsports</h1>
@@ -11,7 +48,15 @@ export default function Dashboard() {
           </p>
           <div className="border border-white/10 rounded-lg p-6 bg-white/5 shadow-md">
             <h2 className="text-xl font-kwajong text-white mb-4">Your Orders</h2>
-            <p className="text-sm text-gray-400">Order history and status will display here once we connect your data from Sanity.</p>
+            {orders.length === 0 ? (
+              <p className="text-sm text-gray-400">No orders yet.</p>
+            ) : (
+              <ul className="text-sm text-gray-300 space-y-2">
+                {orders.map(order => (
+                  <li key={order._id}>{order.title} - {order.status}</li>
+                ))}
+              </ul>
+            )}
           </div>
           <div className="border border-white/10 rounded-lg p-6 bg-white/5 shadow-md">
             <h2 className="text-xl font-kwajong text-white mb-4">Saved Quotes</h2>
@@ -27,5 +72,5 @@ export default function Dashboard() {
         </div>
       </SignedOut>
     </div>
-  )
+  );
 }
