@@ -9,7 +9,9 @@ export default function SignInPage() {
       }}
     >
       <SignIn
-        routing="hash"
+        path="/sign-in"
+        routing="path"
+        signUpUrl="/sign-up"
         appearance={{
           elements: {
             formButtonPrimary:
