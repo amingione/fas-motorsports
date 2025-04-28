@@ -9,34 +9,41 @@ export default function Dashboard() {
   }
 
   const [orders, setOrders] = useState<Order[]>([]);
-
   const { user } = useUser();
 
   useEffect(() => {
     async function syncAndFetchOrders() {
       if (!user) return;
 
-      await fetch('/api/sync-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.id,
-          email: user.primaryEmailAddress?.emailAddress,
-          firstName: user.firstName,
-          lastName: user.lastName,
-        }),
-      });
+      try {
+        // 🔵 Sync user to Sanity
+        await fetch('/api/syncUser', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: user.primaryEmailAddress?.emailAddress,
+            firstName: user.firstName,
+            lastName: user.lastName,
+          }),
+        });
 
-      const res = await fetch('/api/userData');
-      const data = await res.json();
-      setOrders(data.orders);
+        // 🔵 Fetch user's orders from Sanity
+        const res = await fetch('/api/userData');
+        const data = await res.json();
+        setOrders(data.orders || []);
+      } catch (error) {
+        console.error('Error syncing user or fetching orders:', error);
+      }
     }
 
     syncAndFetchOrders();
   }, [user]);
 
   return (
-    <div className="min-h-screen bg-cover bg-center text-white px-6 py-12" style={{ backgroundImage: "url('/images/about page background FAS.png')" }}>
+    <div
+      className="min-h-screen bg-cover bg-center text-white px-6 py-12"
+      style={{ backgroundImage: "url('/images/about page background FAS.png')" }}
+    >
       <div className="max-w-4xl mx-auto space-y-6">
 
         <SignedIn>
@@ -47,6 +54,7 @@ export default function Dashboard() {
             Welcome back! Below you&apos;ll find your recent orders, saved quotes, and current builds.
           </p>
 
+          {/* Orders Section */}
           <div className="border border-white/10 rounded-lg p-6 bg-white/5 shadow-md">
             <h2 className="text-xl font-kwajong text-white mb-4">Your Orders</h2>
             {orders.length === 0 ? (
@@ -54,15 +62,20 @@ export default function Dashboard() {
             ) : (
               <ul className="text-sm text-gray-300 space-y-2">
                 {orders.map(order => (
-                  <li key={order._id}>{order.title} - {order.status}</li>
+                  <li key={order._id}>
+                    {order.title} — {order.status}
+                  </li>
                 ))}
               </ul>
             )}
           </div>
 
+          {/* Saved Quotes Section */}
           <div className="border border-white/10 rounded-lg p-6 bg-white/5 shadow-md">
             <h2 className="text-xl font-kwajong text-white mb-4">Saved Quotes</h2>
-            <p className="text-sm text-gray-400">You haven&apos;t saved any quotes yet. Start building one through the FAS garage.</p>
+            <p className="text-sm text-gray-400">
+              You haven&apos;t saved any quotes yet. Start building one through the FAS garage.
+            </p>
           </div>
         </SignedIn>
 
