@@ -1,4 +1,5 @@
 import { ClerkProvider, SignedIn, SignedOut, SignInButton } from '@clerk/nextjs';
+import { Analytics } from '@vercel/analytics/react';
 import '@/app/global.css';
 import '@/app/theme-fas.css';
 import Head from 'next/head';
@@ -71,6 +72,7 @@ export default function App({ Component, pageProps }: AppProps) {
       >
         <Component {...pageProps} />
       </main>
+      <Analytics />
     </ClerkProvider>
   );
 }
