@@ -24,7 +24,7 @@ export default function ResetPasswordPage() {
     }
 
     if (password !== confirm) {
-      setError("Passwords don't match")
+      setError("Passwords don\u2019t match")
       return
     }
 
@@ -52,8 +52,12 @@ export default function ResetPasswordPage() {
       setTimeout(() => {
         router.push('/sign-in')
       }, 3000)
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong')
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Something went wrong');
+      }
     } finally {
       setLoading(false)
     }

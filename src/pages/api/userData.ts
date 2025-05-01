@@ -26,8 +26,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     ]);
 
     res.status(200).json({ orders, quotes });
-  } catch (err: any) {
-    console.error('JWT auth error:', err.message);
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error('JWT auth error:', err.message);
+    } else {
+      console.error('JWT auth error:', err);
+    }
     res.status(401).json({ message: 'Invalid or expired token' });
   }
 }

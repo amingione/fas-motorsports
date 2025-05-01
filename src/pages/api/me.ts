@@ -54,8 +54,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     return res.status(200).json({ user });
-  } catch (err: any) {
-    console.error('Auth error:', err.message);
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error('Auth error:', err.message);
+    } else {
+      console.error('Auth error:', err);
+    }
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
 }

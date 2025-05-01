@@ -24,8 +24,12 @@ export default function ForgotPasswordPage() {
 
       setMessage('Reset link sent! Please check your email.');
       setEmail('');
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Something went wrong');
+      }
     } finally {
       setLoading(false);
     }

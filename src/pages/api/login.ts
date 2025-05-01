@@ -50,8 +50,12 @@ export default async function handler(req: any, res: any) {
       subject: 'Login Successful',
       html: `<p>Hello ${customer.firstName || 'there'}, you just signed in to FAS Motorsports.</p>`,
     });
-  } catch (err: any) {
-    console.error('Login email failed to send:', err);
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error('Login email failed to send:', err.message);
+    } else {
+      console.error('Login email failed to send:', err);
+    }
   }
 
   return res.status(200).json({
