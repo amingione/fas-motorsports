@@ -39,6 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       firstName,
       lastName,
       passwordHash,
+      userRole: 'customer',
     };
 
     const newCustomer = await client.create(customer);

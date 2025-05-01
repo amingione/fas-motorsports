@@ -44,7 +44,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         phone,
         orderCount,
         quoteCount,
-        lifetimeSpend
+        lifetimeSpend,
+        userRole
       }`,
       { id: decoded._id }
     );
