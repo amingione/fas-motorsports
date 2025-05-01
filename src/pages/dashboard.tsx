@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 export default function Dashboard() {
   interface Order {
@@ -87,7 +88,7 @@ export default function Dashboard() {
         ) : (
           <div className="text-center">
             <h1 className="text-3xl font-bold mb-4">Please sign in to view your dashboard</h1>
-            <a href="/sign-in" className="text-blue-500 underline">Log in</a>
+            <Link href="/sign-in" className="text-blue-500 underline">Log in</Link>
           </div>
         )}
       </div>

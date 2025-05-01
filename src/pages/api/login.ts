@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { createClient } from '@sanity/client';
 import { Resend } from 'resend';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 const client = createClient({
   projectId: 'r4og35qd',
@@ -15,7 +15,7 @@ const client = createClient({
 const JWT_SECRET = process.env.JWT_SECRET || '';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export default async function handler(req: any, res: any) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { email, password } = req.body;
 
   if (!email || !password) {

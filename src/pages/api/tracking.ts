@@ -43,8 +43,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       status: status_description,
       eta: estimated_delivery_date,
     });
-  } catch (error: any) {
-    console.error('Tracking error:', error.message);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Tracking error:', error.message);
+    } else {
+      console.error('Tracking error:', error);
+    }
     return res.status(500).json({ message: 'Internal server error' });
   }
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 
 export default function SignInPage() {
   const router = useRouter();
@@ -96,10 +97,10 @@ export default function SignInPage() {
 
         <p className="text-white mt-4 text-sm">
           Don&apos;t have an account?{' '}
-          <a href="/sign-up" className="text-accent underline">Register here</a>.
+          <Link href="/sign-up" className="text-accent underline">Register here</Link>.
         </p>
         <p className="text-white text-sm text-center">
-          <a href="/forgot-password" className="text-accent underline">Forgot your password?</a>
+          <Link href="/forgot-password" className="text-accent underline">Forgot your password?</Link>
         </p>
       </form>
     </div>

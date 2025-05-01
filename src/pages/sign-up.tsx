@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -80,7 +81,7 @@ export default function SignUpPage() {
         </button>
 
         <p className="text-white text-sm text-center">
-          Already have an account? <a href="/sign-in" className="text-accent underline">Log in here</a>.
+          Already have an account? <Link href="/sign-in" className="text-accent underline">Log in here</Link>.
         </p>
       </form>
     </div>
