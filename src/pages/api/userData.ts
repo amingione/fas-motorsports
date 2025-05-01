@@ -1,14 +1,33 @@
-import { NextApiRequest, NextApiResponse } from 'next'
-import { getAuth } from '@clerk/nextjs/server'
-import sanityClient from '@/lib/sanityClient'
+import { NextApiRequest, NextApiResponse } from 'next';
+import jwt from 'jsonwebtoken';
+import sanityClient from '@/lib/sanityClient';
+
+const JWT_SECRET = process.env.JWT_SECRET || '';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { userId } = getAuth(req)
+  const authHeader = req.headers.authorization;
 
-  if (!userId) return res.status(401).json({ message: 'Unauthorized' })
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Missing or invalid authorization header' });
+  }
 
-  const query = `*[_type == "order" && userId == $userId]`
-  const orders = await sanityClient.fetch(query, { userId })
+  const token = authHeader.split(' ')[1];
 
-  res.status(200).json({ orders })
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as { _id: string };
+    const userId = decoded._id;
+
+    const ordersQuery = `*[_type == "order" && customer._ref == $userId]`;
+    const quotesQuery = `*[_type == "quote" && customer._ref == $userId]`;
+
+    const [orders, quotes] = await Promise.all([
+      sanityClient.fetch(ordersQuery, { userId }),
+      sanityClient.fetch(quotesQuery, { userId })
+    ]);
+
+    res.status(200).json({ orders, quotes });
+  } catch (err: any) {
+    console.error('JWT auth error:', err.message);
+    res.status(401).json({ message: 'Invalid or expired token' });
+  }
 }

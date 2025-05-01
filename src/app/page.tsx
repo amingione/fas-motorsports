@@ -1,23 +1,42 @@
+"use client";
 import './global.css';
 import './theme-fas.css';
 import Link from 'next/link';
+import Head from 'next/head';
+import { useEffect, useState } from 'react';
 
 export default function Home() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsLoggedIn(!!localStorage.getItem('token'));
+    }
+  }, []);
+
   return (
     <>
+      <Head>
+        <title>FAS Motorsports</title>
+        <meta name="description" content="High-performance parts, tuning, and custom builds." />
+      </Head>
       <header className="absolute top-4 right-6 flex space-x-4 z-50">
-        <Link
-          href="/sign-in"
-          className="text-white font-ethno text-sm hover:text-primary transition"
-        >
-          Sign In
-        </Link>
-        <Link
-          href="/sign-up"
-          className="text-white font-ethno text-sm hover:text-primary transition"
-        >
-          Sign Up
-        </Link>
+        {!isLoggedIn && (
+          <>
+            <Link
+              href="/sign-in"
+              className="text-white font-ethno text-sm hover:text-primary transition"
+            >
+              Sign In
+            </Link>
+            <Link
+              href="/sign-up"
+              className="text-white font-ethno text-sm hover:text-primary transition"
+            >
+              Sign Up
+            </Link>
+          </>
+        )}
       </header>
       <main
         className="flex flex-col items-center justify-center h-screen px-4 text-center bg-cover bg-center"
