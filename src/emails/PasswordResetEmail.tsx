@@ -1,12 +1,12 @@
 import * as React from 'react';
-import logo from '../../logo/FASRedLogo.png';
+const logo = 'https://fasmotorsports.io/logo/FASRedLogo.png';
 
 export function PasswordResetEmail({ name, resetLink }: { name: string; resetLink: string }) {
   return (
     <html>
       <body style={{ fontFamily: 'Arial, sans-serif', backgroundColor: '#111', color: '#fff', padding: '40px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <img src={logo.src} alt="FAS Motorsports Logo" style={{ maxWidth: '160px' }} />
+          <img src={logo} alt="FAS Motorsports Logo" style={{ maxWidth: '160px' }} />
         </div>
         <div style={{ maxWidth: '600px', margin: '0 auto', background: '#1a1a1a', borderRadius: '8px', padding: '24px', border: '1px solid #333' }}>
           <h1 style={{ color: '#ea1d26' }}>Reset Your Password</h1>
