@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   title: 'F.A.S. Motorsports',
   description: 'Login or sign up to manage your FAS Motorsports orders.',
   icons: {
-    icon: '/images/FASRedLogo.png',
+    icon: '/images/RedFASChromeLogo.png',
   },
 }
 
