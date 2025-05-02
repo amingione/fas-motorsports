@@ -9,12 +9,12 @@ export function PasswordResetEmail({ name, resetLink }: { name: string; resetLin
           <img src={logo.src} alt="FAS Motorsports Logo" style={{ maxWidth: '160px' }} />
         </div>
         <div style={{ maxWidth: '600px', margin: '0 auto', background: '#1a1a1a', borderRadius: '8px', padding: '24px', border: '1px solid #333' }}>
-          <h1 style={{ color: '#e11d48' }}>Reset Your Password</h1>
+          <h1 style={{ color: '#ea1d26' }}>Reset Your Password</h1>
           <p>Hello {name || 'there'},</p>
           <p>We received a request to reset your password for your FAS Motorsports account.</p>
           <p>Click the button below to reset it. This link will expire in 15 minutes.</p>
           <p style={{ marginTop: '32px' }}>
-            <a href={resetLink} style={{ background: '#e11d48', color: '#fff', padding: '12px 20px', borderRadius: '6px', textDecoration: 'none' }}>
+            <a href={resetLink} style={{ background: '#ea1d26', color: '#fff', padding: '12px 20px', borderRadius: '6px', textDecoration: 'none' }}>
               Reset Password
             </a>
           </p>
