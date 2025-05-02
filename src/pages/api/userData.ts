@@ -9,9 +9,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const authHeader = Array.isArray(req.headers['authorization'])
-    ? req.headers['authorization'][0]
-    : req.headers['authorization'] || req.headers['Authorization'];
+  const authHeaderRaw = req.headers['authorization'] || req.headers['Authorization'];
+  const authHeader = Array.isArray(authHeaderRaw) ? authHeaderRaw[0] : authHeaderRaw;
 
   if (!authHeader || (typeof authHeader !== 'string') || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'Missing or invalid authorization header' });
