@@ -1,11 +1,15 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import sanityClient from '@/lib/sanityClient';
 
 const JWT_SECRET = process.env.JWT_SECRET || '';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const authHeader = req.headers.authorization;
+export default async function handler(req: any, res: any) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ message: 'Method not allowed' });
+  }
+
+  const authHeader = req.headers['authorization'] || req.headers['Authorization'];
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'Missing or invalid authorization header' });
@@ -15,23 +19,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { _id: string };
+    console.log("Decoded JWT payload:", decoded);
     const userId = decoded._id;
 
-    const ordersQuery = `*[_type == "order" && customer._ref == $userId]`;
-    const quotesQuery = `*[_type == "quote" && customer._ref == $userId]`;
+    const userDoc = await sanityClient.fetch(
+      `*[_id == $userId][0]{ _id, _type }`,
+      { userId }
+    );
 
-    const [orders, quotes] = await Promise.all([
-      sanityClient.fetch(ordersQuery, { userId }),
-      sanityClient.fetch(quotesQuery, { userId })
-    ]);
-
-    res.status(200).json({ orders, quotes });
-  } catch (err: unknown) {
-    if (err instanceof Error) {
-      console.error('JWT auth error:', err.message);
-    } else {
-      console.error('JWT auth error:', err);
+    if (!userDoc) {
+      return res.status(404).json({ message: 'User not found' });
     }
-    res.status(401).json({ message: 'Invalid or expired token' });
+
+    let responsePayload = {};
+
+    if (userDoc._type === 'customer') {
+      const orders = await sanityClient.fetch(
+        `*[_type == "order" && customer._ref == $userId]`,
+        { userId }
+      );
+      const quotes = await sanityClient.fetch(
+        `*[_type == "quote" && customer._ref == $userId]`,
+        { userId }
+      );
+      responsePayload = { orders, quotes };
+    } else if (userDoc._type === 'vendor') {
+      const appointments = await sanityClient.fetch(
+        `*[_type == "appointment" && vendor._ref == $userId]`,
+        { userId }
+      );
+      responsePayload = { appointments };
+    }
+
+    return res.status(200).json(responsePayload);
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    console.error('JWT auth error:', errorMessage);
+    return res.status(401).json({ message: 'Invalid or expired token' });
   }
 }

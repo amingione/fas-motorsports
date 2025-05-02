@@ -35,7 +35,24 @@ export default function SignInPage() {
       }
 
       localStorage.setItem('token', data.token);
-      router.push('/dashboard');
+
+      const userRes = await fetch('/api/me', {
+        headers: { Authorization: `Bearer ${data.token}` },
+      });
+
+      if (!userRes.ok) {
+        throw new Error('Failed to fetch user profile');
+      }
+
+      const user = await userRes.json();
+
+      if (user._type === 'vendor') {
+        window.location.href = 'https://vendor.fasmotorsports.com/dashboard';
+      } else if (user._type === 'customer') {
+        window.location.href = 'https://fasmotorsports.com/dashboard';
+      } else {
+        window.location.href = 'https://fasmotorsports.com';
+      }
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);

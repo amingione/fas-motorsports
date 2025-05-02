@@ -12,10 +12,17 @@ export default function Dashboard() {
     email: string;
     firstName?: string;
     lastName?: string;
+    quotes?: {
+      quoteId: string;
+      status: string;
+      dateRequested: string;
+      notes?: string;
+    }[];
   }
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [user, setUser] = useState<User | null>(null);
+  const [quotes, setQuotes] = useState<User['quotes']>([] as User['quotes']);
 
   useEffect(() => {
     async function fetchUserAndOrders() {
@@ -39,6 +46,7 @@ export default function Dashboard() {
 
         const data = await res.json();
         setOrders(data.orders || []);
+        setQuotes(data.quotes || []);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       }
@@ -49,7 +57,7 @@ export default function Dashboard() {
 
   return (
     <div
-      className="min-h-screen bg-cover bg-center text-white px-6 py-12"
+      className="min-h-screen flex items-center justify-center bg-fit text-white px-4"
       style={{ backgroundImage: "url('/images/about page background FAS.png')" }}
     >
       <div className="max-w-4xl mx-auto space-y-6">
@@ -80,9 +88,19 @@ export default function Dashboard() {
             {/* Saved Quotes Section */}
             <div className="border border-white/10 rounded-lg p-6 bg-white/5 shadow-md">
               <h2 className="text-xl font-kwajong text-white mb-4">Saved Quotes</h2>
-              <p className="text-sm text-gray-400">
-                You haven&apos;t saved any quotes yet. Start building one through the FAS garage.
-              </p>
+              {quotes?.length === 0 ? (
+                <p className="text-sm text-gray-400">
+                  You haven&apos;t saved any quotes yet. Start building one through the FAS garage.
+                </p>
+              ) : (
+                <ul className="text-sm text-gray-300 space-y-2">
+                  {quotes?.map(quote => (
+                    <li key={quote.quoteId}>
+                      Quote #{quote.quoteId} — {quote.status} ({new Date(quote.dateRequested).toLocaleDateString()})
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </>
         ) : (

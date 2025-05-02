@@ -1,12 +1,14 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 
 const SHIPENGINE_API_KEY = process.env.SHIPENGINE_API_KEY || '';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { trackingNumber, carrierCode } = req.query;
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url || '');
+  const trackingNumber = searchParams.get('trackingNumber');
+  const carrierCode = searchParams.get('carrierCode');
 
   if (!trackingNumber || typeof trackingNumber !== 'string') {
-    return res.status(400).json({ message: 'Missing or invalid tracking number' });
+    return NextResponse.json({ message: 'Missing or invalid tracking number' }, { status: 400 });
   }
 
   let url = `https://api.shipengine.com/v1/tracking?tracking_number=${trackingNumber}`;
@@ -24,7 +26,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!response.ok) {
       const error = await response.json();
-      return res.status(response.status).json({ message: 'Failed to retrieve tracking info', error });
+      return NextResponse.json(
+        { message: 'Failed to retrieve tracking info', error },
+        { status: response.status }
+      );
     }
 
     const data = await response.json();
@@ -35,20 +40,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       estimated_delivery_date,
     } = data;
 
-    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate');
-
-    return res.status(200).json({
-      carrier: carrier_name,
-      trackingNumber: tracking_number,
-      status: status_description,
-      eta: estimated_delivery_date,
-    });
+    return new NextResponse(
+      JSON.stringify({
+        carrier: carrier_name,
+        trackingNumber: tracking_number,
+        status: status_description,
+        eta: estimated_delivery_date,
+      }),
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 's-maxage=300, stale-while-revalidate',
+        },
+      }
+    );
   } catch (error: unknown) {
     if (error instanceof Error) {
       console.error('Tracking error:', error.message);
     } else {
       console.error('Tracking error:', error);
     }
-    return res.status(500).json({ message: 'Internal server error' });
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }

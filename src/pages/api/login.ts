@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { createClient } from '@sanity/client';
 import { Resend } from 'resend';
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { serialize } from 'cookie';
 
 const client = createClient({
   projectId: 'r4og35qd',
@@ -58,8 +59,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
+  res.setHeader('Set-Cookie', serialize('token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 7, // 7 days
+    sameSite: 'lax',
+  }));
+
   return res.status(200).json({
-    token,
     user: {
       email: customer.email,
       firstName: customer.firstName,

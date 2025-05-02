@@ -64,8 +64,15 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black text-white px-4">
+    <div className="min-h-screen flex items-center justify-center bg-fit text-white px-4"style={{ backgroundImage: "url('/images/about page background FAS.png')" }}>
       <form onSubmit={handleReset} className="bg-zinc-900 border border-white max-w-md w-full p-8 rounded-lg shadow-md">
+        <input
+          type="text"
+          name="username"
+          autoComplete="username"
+          className="hidden"
+          tabIndex={-1}
+        />
         <h1 className="text-2xl font-bold mb-6">Reset Your Password</h1>
 
         <label htmlFor="password" className="block mb-1 text-sm">New Password</label>

@@ -9,9 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@react-email/components": "^0.0.37",
+    "@react-email/render": "^1.1.0",
     "@sanity/client": "^6.29.1",
     "@vercel/analytics": "^1.5.0",
     "bcryptjs": "^3.0.2",
+    "cookie": "^1.0.2",
     "jsonwebtoken": "^9.0.2",
     "next": "^15.3.1",
     "react": "^19.0.0",
@@ -22,6 +25,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4.1.4",
+    "@types/cookie": "^0.6.0",
     "@types/node": "^20.17.32",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -46,5 +50,6 @@
   "bugs": {
     "url": "https://github.com/amingione/fas-motorsports/issues"
   },
-  "homepage": "https://github.com/amingione/fas-motorsports#readme"
+  "homepage": "https://github.com/amingione/fas-motorsports#readme",
+  "packageManager": "yarn@4.9.1+sha512.f95ce356460e05be48d66401c1ae64ef84d163dd689964962c6888a9810865e39097a5e9de748876c2e0bf89b232d583c33982773e9903ae7a76257270986538"
 }

@@ -39,7 +39,7 @@ export default function Home() {
         )}
       </header>
       <main
-        className="flex flex-col items-center justify-center h-screen px-4 text-center bg-cover bg-center"
+        className="flex flex-col items-center justify-center h-screen px-4 text-center bg-fit bg-center"
         style={{ backgroundImage: "url('/images/about page background FAS.png')" }}
       >
         <h1 className="text-primary font-borg text-2xl sm:text-3xl md:text-4xl tracking-[.3em] mb-8 drop-shadow-md">

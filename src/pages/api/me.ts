@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from 'next';
 import jwt from 'jsonwebtoken';
 import { createClient } from '@sanity/client';
 
@@ -19,9 +19,12 @@ interface DecodedToken {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ message: 'Method Not Allowed' });
+  }
+
   try {
     const authHeader = req.headers.authorization;
-
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ message: 'Missing or invalid authorization header' });
     }
@@ -29,23 +32,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
 
-    // Expiration validation fallback
     const now = Math.floor(Date.now() / 1000);
     if (decoded.exp && decoded.exp < now) {
       return res.status(401).json({ message: 'Token has expired' });
     }
 
     const user = await sanity.fetch(
-      `*[_type == "customer" && _id == $id][0]{
+      `*[_id == $id][0]{
         _id,
+        _type,
         email,
         firstName,
         lastName,
         phone,
+        userRole,
         orderCount,
         quoteCount,
-        lifetimeSpend,
-        userRole
+        lifetimeSpend
       }`,
       { id: decoded._id }
     );
@@ -56,11 +59,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({ user });
   } catch (err: unknown) {
-    if (err instanceof Error) {
-      console.error('Auth error:', err.message);
-    } else {
-      console.error('Auth error:', err);
-    }
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    console.error('Auth error:', errorMessage);
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
 }
