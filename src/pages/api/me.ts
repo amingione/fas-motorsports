@@ -55,6 +55,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!token) {
+      if (origin && allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+      }
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
       return res.status(401).json({ message: 'Missing authentication token' });
     }
 
@@ -62,6 +66,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const now = Math.floor(Date.now() / 1000);
     if (decoded.exp && decoded.exp < now) {
+      if (origin && allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+      }
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
       return res.status(401).json({ message: 'Token has expired' });
     }
 
@@ -82,6 +90,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
 
     if (!user) {
+      if (origin && allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+      }
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
       return res.status(404).json({ message: 'User not found' });
     }
 
@@ -89,6 +101,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error';
     console.error('Auth error:', errorMessage);
+    if (origin && allowedOrigins.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
 }

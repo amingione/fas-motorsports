@@ -32,11 +32,9 @@ export default function SignInPage() {
         throw new Error(data.message || 'Login failed. Please try again later.');
       }
 
-      localStorage.setItem('token', data.token);
+      // Token is now stored in a secure cookie, no need to handle it here
 
-      const userRes = await fetch('/api/me', {
-        headers: { Authorization: `Bearer ${data.token}` },
-      });
+      const userRes = await fetch('/api/me');
 
       if (!userRes.ok) {
         throw new Error('Failed to fetch user profile');
