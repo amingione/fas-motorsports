@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import jwt from 'jsonwebtoken';
+import cookie from 'cookie';
 import { createClient } from '@sanity/client';
 
 const JWT_SECRET = process.env.JWT_SECRET || '';
@@ -24,12 +25,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ message: 'Missing or invalid authorization header' });
+    const cookies = req.headers.cookie ? cookie.parse(req.headers.cookie) : {};
+    const token = cookies.token;
+
+    if (!token) {
+      return res.status(401).json({ message: 'Missing authentication token' });
     }
 
-    const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
 
     const now = Math.floor(Date.now() / 1000);
