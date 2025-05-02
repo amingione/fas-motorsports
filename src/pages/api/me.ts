@@ -20,7 +20,27 @@ interface DecodedToken {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const allowedOrigins = [
+    'https://fasmotorsports.com',
+    'https://vendor.fasmotorsports.com',
+    'http://localhost:4321'
+  ];
+  const origin = req.headers.origin;
+  if (req.method === 'OPTIONS') {
+    if (origin && allowedOrigins.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    return res.status(200).end();
+  }
+
   if (req.method !== 'GET') {
+    if (origin && allowedOrigins.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
 
