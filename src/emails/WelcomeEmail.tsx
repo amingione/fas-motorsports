@@ -6,7 +6,7 @@ export function WelcomeEmail({ name }: { name: string }) {
       <body style={{ fontFamily: 'Arial, sans-serif', backgroundColor: '#111', color: '#fff', padding: '40px' }}>
         <div style={{ maxWidth: '600px', margin: '0 auto', background: '#1a1a1a', borderRadius: '8px', padding: '24px', border: '1px solid #333' }}>
           <img
-            src="https://fasmotorsports.io/public/images/FASRedLogo.png"
+            src="/images/RedFASChromeLogo.png"
             alt="FAS Motorsports Logo"
             style={{ display: 'block', margin: '0 auto 20px', maxWidth: '180px' }}
           />

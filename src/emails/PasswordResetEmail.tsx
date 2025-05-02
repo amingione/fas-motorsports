@@ -1,5 +1,5 @@
 import * as React from 'react';
-import logo from '../../images/FASRedLogo.png';
+import logo from '../../logo/FASRedLogo.png';
 
 export function PasswordResetEmail({ name, resetLink }: { name: string; resetLink: string }) {
   return (
