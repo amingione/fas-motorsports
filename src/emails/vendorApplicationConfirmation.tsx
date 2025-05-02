@@ -14,6 +14,9 @@ export default function VendorApplicationConfirmationEmail({ name }: { name: str
       <Preview>Your vendor application has been received by FAS Motorsports</Preview>
       <Body style={{ backgroundColor: '#000', color: '#fff', fontFamily: 'Arial, sans-serif', padding: '20px' }}>
         <Container style={{ maxWidth: '600px', margin: '0 auto', backgroundColor: '#111', padding: '40px', borderRadius: '8px' }}>
+          <Section style={{ textAlign: 'center', marginBottom: '20px' }}>
+            <img src="https://fasmotorsports.io/images/FASRedLogo.png" alt="FAS Motorsports Logo" style={{ maxWidth: '180px' }} />
+          </Section>
           <Section>
             <Text style={{ fontSize: '20px', fontWeight: 'bold', color: '#facc15' }}>
               Thank you for applying, {name}!

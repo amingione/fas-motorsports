@@ -64,7 +64,7 @@ export default function SignInPage() {
 
   return (
     <div
-      className="flex items-center justify-center min-h-screen bg-cover bg-center text-white px-4"
+      className="min-h-screen flex items-center justify-center bg-fit text-white px-4"
       style={{ backgroundImage: "url('/images/about page background FAS.png')" }}
     >
       <form

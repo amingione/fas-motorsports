@@ -80,7 +80,7 @@ export default function VendorApplicationPage() {
 
   return (
     <div
-      className="flex items-center justify-center min-h-screen bg-fit bg-center text-white px-4"
+      className="relative min-h-screen flex items-center justify-center bg-cover text-white px-4"
       style={{ backgroundImage: "url('/images/about page background FAS.png')" }}
     >
       {applicationSubmitted ? (
@@ -91,8 +91,9 @@ export default function VendorApplicationPage() {
         </div>
       ) : (
         <div>
-          <h1 className="relative text-2xl text-primary font-borg mb-6">Vendor Application</h1>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <h1 className="relative text-2xl mt-30 text-white font-ethno"><span className="font-borg text-primary">F.a.S.</span> Motorsports</h1>
+          <h2 className="text-2xl font-captain rem-1.5 text-secondary">Vendor Application</h2>
+          <form onSubmit={handleSubmit} className="space-y-4 bg-black/30 pt-3 px-5 border-white mt-15 mb-10 mx-auto max-w-xl">
             <input type="text" name="businessName" aria-label="Business Name" placeholder="Business Name" value={formData.businessName} onChange={handleChange} required className="w-full p-2 border-black/50 bg-black/40 rounded" />
             <input type="text" name="contactName" aria-label="Contact Name" placeholder="Contact Name" value={formData.contactName} onChange={handleChange} required className="w-full bg-black/40 p-2 border-black/50 rounded" />
             <input type="email" name="email" aria-label="Email" placeholder="Email" value={formData.email} onChange={handleChange} required className="w-full bg-black/40 p-2 border-black/50 rounded" />
