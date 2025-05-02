@@ -64,7 +64,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-fit text-white px-4"style={{ backgroundImage: "url('/images/about page background FAS.png')" }}>
+    <div className="min-h-screen flex items-center justify-center text-white px-4" style={{ backgroundImage: "url('/images/about page background FAS.png')" }}>
       <form onSubmit={handleReset} className="bg-zinc-900 border border-white max-w-md w-full p-8 rounded-lg shadow-md">
         <input
           type="text"

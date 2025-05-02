@@ -1,17 +1,19 @@
-import { NextResponse } from 'next/server';
+import type { NextApiRequest, NextApiResponse } from 'next';
 import jwt from 'jsonwebtoken';
 import sanityClient from '@/lib/sanityClient';
 
 const JWT_SECRET = process.env.JWT_SECRET || '';
 
-export default async function handler(req: any, res: any) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const authHeader = req.headers['authorization'] || req.headers['Authorization'];
+  const authHeader = Array.isArray(req.headers['authorization'])
+    ? req.headers['authorization'][0]
+    : req.headers['authorization'] || req.headers['Authorization'];
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!authHeader || (typeof authHeader !== 'string') || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'Missing or invalid authorization header' });
   }
 

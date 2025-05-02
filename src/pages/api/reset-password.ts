@@ -20,7 +20,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const passwordHash = await bcrypt.hash(password, 10);
 
     const docId = decoded._id;
-    const docType = decoded.userRole === 'vendor' ? 'vendor' : 'customer';
 
     await sanityClient
       .patch(docId)

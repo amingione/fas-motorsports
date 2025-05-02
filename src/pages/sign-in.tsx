@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import { useRouter } from 'next/router';
 import Link from 'next/link';
 
 export default function SignInPage() {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -112,9 +110,12 @@ export default function SignInPage() {
           Log In
         </button>
 
-        <p className="text-white mt-4 text-sm">
+        <p className="text-white mt-4 text-sm text-center">
           Don&apos;t have an account?{' '}
           <Link href="/sign-up" className="text-accent underline">Register here</Link>.
+        </p>
+        <p className="text-white text-sm text-center">
+          <Link href="/vendor/application" className="text-accent underline">Apply to be a vendor</Link>
         </p>
         <p className="text-white text-sm text-center">
           <Link href="/forgot-password" className="text-accent underline">Forgot your password?</Link>
