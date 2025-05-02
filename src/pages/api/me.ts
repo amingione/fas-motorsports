@@ -23,7 +23,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const allowedOrigins = [
     'https://fasmotorsports.com',
     'https://vendor.fasmotorsports.com',
-    'http://localhost:4321'
+    'http://localhost:4321',
+    'https://fasmotorsports.io'
   ];
   const origin = req.headers.origin;
   if (req.method === 'OPTIONS') {
@@ -47,6 +48,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const cookies = req.headers.cookie ? cookie.parse(req.headers.cookie) : {};
     const token = cookies.token;
+    console.log("Incoming request to /api/me", {
+      origin,
+      cookies,
+      token,
+    });
 
     if (!token) {
       return res.status(401).json({ message: 'Missing authentication token' });
