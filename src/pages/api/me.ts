@@ -1,5 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import jwt from 'jsonwebtoken';
+
+interface DecodedToken {
+  _id: string;
+  exp?: number;
+}
 import cookie from 'cookie';
 import { createClient } from '@sanity/client';
 
@@ -12,14 +17,11 @@ const sanity = createClient({
   token: process.env.SANITY_API_TOKEN,
 });
 
-interface DecodedToken {
-  _id: string;
-  email: string;
-  iat: number;
-  exp: number;
-}
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (!process.env.SANITY_API_TOKEN) {
+    return res.status(500).json({ message: 'Server misconfigured: missing SANITY_API_TOKEN' });
+  }
+
   const allowedOrigins = [
     'https://fasmotorsports.com',
     'https://vendor.fasmotorsports.com',
@@ -27,21 +29,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     'https://fasmotorsports.io'
   ];
   const origin = req.headers.origin;
+
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+
   if (req.method === 'OPTIONS') {
-    if (origin && allowedOrigins.includes(origin)) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-    }
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     return res.status(200).end();
   }
 
   if (req.method !== 'GET') {
-    if (origin && allowedOrigins.includes(origin)) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-    }
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
 
@@ -55,10 +55,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!token) {
-      if (origin && allowedOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-      }
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
       return res.status(401).json({ message: 'Missing authentication token' });
     }
 
@@ -66,10 +62,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const now = Math.floor(Date.now() / 1000);
     if (decoded.exp && decoded.exp < now) {
-      if (origin && allowedOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-      }
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
       return res.status(401).json({ message: 'Token has expired' });
     }
 
@@ -90,10 +82,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
 
     if (!user) {
-      if (origin && allowedOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-      }
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
       return res.status(404).json({ message: 'User not found' });
     }
 
@@ -101,10 +89,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error';
     console.error('Auth error:', errorMessage);
-    if (origin && allowedOrigins.includes(origin)) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-    }
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
 }

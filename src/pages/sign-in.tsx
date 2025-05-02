@@ -24,6 +24,13 @@ export default function SignInPage() {
       }
       const data = await res.json();
 
+      // Fallback: If server did not set the cookie, set it client-side (not HttpOnly, so less secure)
+      // Best practice: Server should set 'Set-Cookie: token=<JWT>; Path=/; HttpOnly; Secure; SameSite=Lax'
+      if (data.token) {
+        // Store token in cookie from client (not ideal for HttpOnly, but fallback if server doesn't set it)
+        document.cookie = `token=${data.token}; path=/; secure; samesite=lax`;
+      }
+
       if (!res.ok) {
         if (res.status === 401) {
           setError(data.message || 'Invalid credentials. Please try again.');
