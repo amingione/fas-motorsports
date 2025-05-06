@@ -24,11 +24,8 @@ export default function SignInPage() {
       if (!contentType || !contentType.includes('application/json')) {
         throw new Error('Unexpected server response. Please try again later.');
       }
-      const data = await res.json();
 
-      if (data.token) {
-        document.cookie = `token=${data.token}; path=/; secure; samesite=lax`;
-      }
+      const data = await res.json();
 
       if (!res.ok) {
         if (res.status === 401) {
@@ -38,14 +35,28 @@ export default function SignInPage() {
         throw new Error(data.message || 'Login failed. Please try again later.');
       }
 
-      const userRes = await fetch('/api/me');
+      if (data.token) {
+        document.cookie = `token=${data.token}; path=/; secure; samesite=Lax`;
+      }
+
+      // ✅ Get user info
+      const userRes = await fetch('/api/me', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${data.token}`,
+        },
+      });
+
       if (!userRes.ok) {
         throw new Error('Failed to fetch user profile');
       }
+
       const user = await userRes.json();
 
-      Cookies.set('userRole', user._type, { expires: 30 });
+      // ✅ Store user role in cookie
+      Cookies.set('userRole', user._type, { expires: 30, sameSite: 'Lax', secure: true });
 
+      // ✅ Route by role and environment
       const isLocal = typeof window !== 'undefined' && window.location.hostname === 'localhost';
       const vendorURL = isLocal
         ? 'http://localhost:3001/dashboard'
@@ -59,6 +70,7 @@ export default function SignInPage() {
       } else if (user._type === 'customer') {
         router.push(customerURL);
       } else {
+        Cookies.remove('userRole');
         router.push('/');
       }
     } catch (err: unknown) {

@@ -52,13 +52,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    const authHeader = req.headers.authorization;
+    const tokenFromHeader = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
     const cookies = req.headers.cookie ? cookie.parse(req.headers.cookie) : {};
-    const token = cookies.token;
+    const token = tokenFromHeader || cookies.token;
 
     console.log("🔐 /api/me request", {
       origin,
       hasCookieHeader: !!req.headers.cookie,
       tokenPresent: !!token,
+      fromHeader: !!tokenFromHeader,
       rawCookieHeader: req.headers.cookie,
     });
 
