@@ -3,12 +3,32 @@ import jwt from 'jsonwebtoken';
 import sanityClient from '@/lib/sanityClient';
 
 const JWT_SECRET = process.env.JWT_SECRET;
-
 if (!JWT_SECRET) {
   throw new Error('JWT_SECRET environment variable is not set');
 }
 
+const allowedOrigins = [
+  'https://fasmotorsports.com',
+  'https://www.fasmotorsports.com',
+  'https://fasmotorsports.io',
+  'https://www.fasmotorsports.io',
+  'http://localhost:4321',
+];
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const origin = req.headers.origin || '';
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+  res.setHeader('Vary', 'Origin');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
@@ -26,10 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const decoded = jwt.verify(token, JWT_SECRET) as { _id: string };
     const userId = decoded._id;
 
-    const userDoc = await sanityClient.fetch(
-      `*[_id == $userId][0]{ _id, _type }`,
-      { userId }
-    );
+    const userDoc = await sanityClient.fetch(`*[_id == $userId][0]{ _id, _type }`, { userId });
 
     if (!userDoc) {
       return res.status(404).json({ message: 'User not found' });
@@ -37,20 +54,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log(`Authenticated ${userDoc._type} with ID ${userId}`);
 
-    let responsePayload: Record<string, unknown> = {};
+    let responsePayload: Record<string, unknown> = { userType: userDoc._type };
 
     if (userDoc._type === 'customer') {
       const [orders, quotes] = await Promise.all([
         sanityClient.fetch(`*[_type == "order" && customer._ref == $userId]`, { userId }),
         sanityClient.fetch(`*[_type == "quote" && customer._ref == $userId]`, { userId }),
       ]);
-      responsePayload = { orders, quotes };
+      responsePayload = { ...responsePayload, orders, quotes };
     } else if (userDoc._type === 'vendor') {
       const appointments = await sanityClient.fetch(
         `*[_type == "appointment" && vendor._ref == $userId]`,
         { userId }
       );
-      responsePayload = { appointments };
+      responsePayload = { ...responsePayload, appointments };
     } else {
       return res.status(400).json({ message: 'Unsupported user type' });
     }

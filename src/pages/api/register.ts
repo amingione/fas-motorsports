@@ -26,8 +26,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   console.log('📥 Register payload:', { email, hasPassword: !!password, firstName, lastName, role });
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!email || !emailRegex.test(email) || !password || !firstName || !lastName) {
-    return res.status(400).json({ message: 'Missing or invalid fields' });
+  if (!email || !emailRegex.test(email)) {
+    return res.status(400).json({ message: 'Invalid or missing email' });
+  }
+  if (!password) {
+    return res.status(400).json({ message: 'Password is required' });
+  }
+  if (!firstName || !lastName) {
+    return res.status(400).json({ message: 'First and last name are required' });
   }
 
   try {
@@ -60,7 +66,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const newCustomer = await client.create(userDoc);
 
-    const token = jwt.sign({ _id: newCustomer._id }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign(
+      { _id: newCustomer._id, userRole: 'customer' },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
 
     const html = await render(
       React.createElement(WelcomeEmail, { name: firstName })
@@ -77,8 +87,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       'Set-Cookie',
       serialize('token', token, {
         httpOnly: true,
-        secure: true,
-        sameSite: 'none',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
         path: '/',
         maxAge: 60 * 60 * 24 * 7, // 7 days
       })
@@ -96,7 +106,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
   } catch (err) {
-    console.error('❌ Registration error:', err instanceof Error ? err.message : err);
+    console.error('❌ Registration error:', err);
     return res.status(500).json({ message: 'Registration failed' });
   }
 }

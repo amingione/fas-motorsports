@@ -18,7 +18,6 @@ const sanity = createClient({
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Check required env vars
   if (!process.env.SANITY_API_TOKEN) {
     return res.status(500).json({ message: 'Server misconfigured: missing SANITY_API_TOKEN' });
   }
@@ -27,19 +26,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ message: 'Server misconfigured: missing JWT_SECRET' });
   }
 
-  // Handle CORS
   const allowedOrigins = [
     'https://fasmotorsports.com',
+    'https://www.fasmotorsports.com',
     'https://vendor.fasmotorsports.com',
     'https://fasmotorsports.io',
+    'https://www.fasmotorsports.io',
     'http://localhost:4321',
   ];
   const origin = req.headers.origin;
 
-  if (origin && allowedOrigins.includes(origin)) {
+  if (origin && !allowedOrigins.includes(origin)) {
+    return res.status(403).json({ message: 'Origin not allowed' });
+  }
+
+  if (origin) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
   res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Vary', 'Origin');
+  res.setHeader('Cache-Control', 'no-store');
 
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
@@ -47,7 +53,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).end();
   }
 
-  // Restrict to GET method
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
@@ -56,11 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const cookies = req.headers.cookie ? cookie.parse(req.headers.cookie) : {};
     const token = cookies.token;
 
-    console.log("Incoming request to /api/me", {
-      origin,
-      cookies,
-      token,
-    });
+    console.log("Incoming request to /api/me", { origin, cookies, token });
 
     if (!token) {
       return res.status(401).json({ message: 'Missing authentication token' });
@@ -68,13 +69,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
 
-    // Token expiration check
     const now = Math.floor(Date.now() / 1000);
     if (decoded.exp && decoded.exp < now) {
       return res.status(401).json({ message: 'Token has expired' });
     }
 
-    // Sanity user query
     const user = await sanity.fetch(
       `*[_id == $id][0]{
         _id,

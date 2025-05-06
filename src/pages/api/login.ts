@@ -16,20 +16,34 @@ const client = createClient({
 const JWT_SECRET = process.env.JWT_SECRET || '';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+const allowedOrigins = [
+  'https://fasmotorsports.com',
+  'https://www.fasmotorsports.com',
+  'https://fasmotorsports.io',
+  'https://www.fasmotorsports.io',
+  'http://localhost:4321'
+];
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Allow only POST
+  const origin = req.headers.origin || '';
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Vary', 'Origin');
+
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  // Enforce POST method
   if (req.method !== 'POST') {
     res.setHeader('Allow', ['POST']);
     return res.status(405).json({ message: `Method ${req.method} not allowed` });
   }
-
-  // CORS Headers
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', process.env.NODE_ENV === 'production' 
-    ? 'https://fasmotorsports.com' 
-    : 'http://localhost:4321');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   const { email, password } = req.body;
 
@@ -51,11 +65,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const token = jwt.sign(
-      { _id: customer._id, email: customer.email },
+      {
+        _id: customer._id,
+        email: customer.email,
+        role: customer.userRole || 'customer'
+      },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
 
+    // Send login notification email (non-blocking)
     try {
       await resend.emails.send({
         from: 'FAS Motorsports <no-reply@updates.fasmotorsports.com>',
@@ -67,6 +86,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.error('Login email failed to send:', err instanceof Error ? err.message : err);
     }
 
+    // Set secure cookie with JWT
     res.setHeader('Set-Cookie', serialize('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -80,6 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         email: customer.email,
         firstName: customer.firstName,
         lastName: customer.lastName,
+        role: customer.userRole || 'customer',
       },
     });
   } catch (err) {

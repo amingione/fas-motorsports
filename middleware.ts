@@ -6,33 +6,36 @@ const allowedOrigins = [
   'https://www.fasmotorsports.com',
   'http://localhost:4321',
   'http://localhost:3000',
+  'https://fasmotorsports.io',
+  'https://www.fasmotorsports.io'
 ]
 
 export function middleware(req: NextRequest) {
   const origin = req.headers.get('origin') || ''
   const isAllowedOrigin = allowedOrigins.includes(origin)
 
-  if (req.method === 'OPTIONS') {
-    const preflightHeaders = new Headers()
-    if (isAllowedOrigin) {
-      preflightHeaders.set('Access-Control-Allow-Origin', origin)
-      preflightHeaders.set('Access-Control-Allow-Credentials', 'true')
-    }
-    preflightHeaders.set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
-    preflightHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-    return new Response(null, { status: 204, headers: preflightHeaders })
-  }
-
-  const res = NextResponse.next()
-
+  const corsHeaders = new Headers()
   if (isAllowedOrigin) {
-    res.headers.set('Access-Control-Allow-Origin', origin)
-    res.headers.set('Access-Control-Allow-Credentials', 'true')
+    corsHeaders.set('Access-Control-Allow-Origin', origin)
+    corsHeaders.set('Access-Control-Allow-Credentials', 'true')
   }
-  res.headers.set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
-  res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  corsHeaders.set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
+  corsHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 
-  return res
+  // Handle preflight OPTIONS requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders
+    })
+  }
+
+  const response = NextResponse.next()
+  for (const [key, value] of Array.from(corsHeaders.entries())) {
+    response.headers.set(key, value)
+  }
+
+  return response
 }
 
 export const config = {

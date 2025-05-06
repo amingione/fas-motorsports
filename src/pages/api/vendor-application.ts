@@ -19,24 +19,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     message = ''
   } = req.body;
 
+  // Clean inputs
   const sanitized = {
-    businessName: businessName.trim(),
-    contactName: contactName.trim(),
-    email: email.trim().toLowerCase(),
-    phone: phone.trim(),
-    businessType: businessType.trim(),
-    message: message.trim()
+    businessName: businessName.toString().trim(),
+    contactName: contactName.toString().trim(),
+    email: email.toString().trim().toLowerCase(),
+    phone: phone.toString().trim(),
+    businessType: businessType.toString().trim(),
+    message: message.toString().trim(),
   };
 
+  // Email validation
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sanitized.email);
 
-  if (
-    !sanitized.businessName ||
-    !sanitized.contactName ||
-    !isValidEmail ||
-    !sanitized.phone
-  ) {
-    return res.status(400).json({ message: 'Missing or invalid required fields' });
+  if (!sanitized.businessName) {
+    return res.status(400).json({ message: 'Business name is required' });
+  }
+
+  if (!sanitized.contactName) {
+    return res.status(400).json({ message: 'Contact name is required' });
+  }
+
+  if (!isValidEmail) {
+    return res.status(400).json({ message: 'A valid email is required' });
+  }
+
+  if (!sanitized.phone) {
+    return res.status(400).json({ message: 'Phone number is required' });
   }
 
   try {
@@ -59,16 +68,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await client.create(doc);
 
-    await resend.emails.send({
-      from: 'FAS Motorsports <no-reply@fasmotorsports.io>',
-      to: sanitized.email,
-      subject: 'Vendor Application Received',
-      react: VendorApplicationConfirmation({ name: sanitized.businessName }),
-    });
+    try {
+      await resend.emails.send({
+        from: 'FAS Motorsports <no-reply@updates.fasmotorsports.io>',
+        to: sanitized.email,
+        subject: 'Vendor Application Received',
+        react: VendorApplicationConfirmation({ name: sanitized.businessName }),
+      });
+    } catch (emailErr) {
+      console.error('Error sending confirmation email:', emailErr);
+    }
 
     return res.status(200).json({ message: 'Application submitted successfully' });
   } catch (err) {
-    console.error('Vendor application error:', err, 'Body:', req.body);
+    console.error('Vendor application error:', err, 'Request Body:', req.body);
     return res.status(500).json({ message: 'Internal Server Error' });
   }
 }
