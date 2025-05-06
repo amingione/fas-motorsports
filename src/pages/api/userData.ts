@@ -53,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log(`🔐 Authenticated ${userDoc._type} with ID ${userId}`);
 
-    let responsePayload: Record<string, any> = { userType: userDoc._type };
+    const responsePayload: Record<string, unknown> = { userType: userDoc._type };
 
     if (userDoc._type === 'customer') {
       const [orders, quotes] = await Promise.all([
