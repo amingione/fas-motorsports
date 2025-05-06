@@ -20,6 +20,10 @@ const JWT_SECRET = process.env.JWT_SECRET!;
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method Not Allowed' });
+  }
+
   const { email, password, firstName, lastName, userRole } = req.body;
   const role = userRole === 'vendor' ? 'vendor' : 'customer';
 
@@ -37,12 +41,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const existing = await client.fetch(
+    const existingUser = await client.fetch(
       `*[_type in ["customer", "vendor"] && email == $email][0]`,
       { email }
     );
 
-    if (existing) {
+    if (existingUser) {
       return res.status(409).json({ message: 'Email already in use' });
     }
 
@@ -54,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const userDoc = {
+    const newUser = await client.create({
       _type: 'customer',
       email,
       firstName,
@@ -62,12 +66,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       passwordHash,
       userRole: 'customer',
       createdAt: new Date().toISOString(),
-    };
-
-    const newCustomer = await client.create(userDoc);
+    });
 
     const token = jwt.sign(
-      { _id: newCustomer._id, userRole: 'customer' },
+      { _id: newUser._id, userRole: 'customer' },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -97,16 +99,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({
       token,
       user: {
-        _id: newCustomer._id,
+        _id: newUser._id,
         email,
         firstName,
         lastName,
-        _type: 'customer',
         userRole: 'customer',
       },
     });
   } catch (err) {
-    console.error('❌ Registration error:', err);
+    console.error('❌ Registration error:', (err as Error).message || err);
     return res.status(500).json({ message: 'Registration failed' });
   }
 }

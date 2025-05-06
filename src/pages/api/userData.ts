@@ -16,24 +16,20 @@ const allowedOrigins = [
 ];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Set CORS headers
   const origin = req.headers.origin || '';
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
   res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
   res.setHeader('Vary', 'Origin');
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'GET') return res.status(405).json({ message: 'Method Not Allowed' });
 
-  if (req.method !== 'GET') {
-    return res.status(405).json({ message: 'Method not allowed' });
-  }
-
-  const authHeaderRaw = req.headers['authorization'] || req.headers['Authorization'];
+  const authHeaderRaw = req.headers.authorization || req.headers.Authorization;
   const authHeader = Array.isArray(authHeaderRaw) ? authHeaderRaw[0] : authHeaderRaw;
 
   if (!authHeader || typeof authHeader !== 'string' || !authHeader.startsWith('Bearer ')) {
@@ -46,36 +42,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const decoded = jwt.verify(token, JWT_SECRET) as { _id: string };
     const userId = decoded._id;
 
-    const userDoc = await sanityClient.fetch(`*[_id == $userId][0]{ _id, _type }`, { userId });
+    const userDoc = await sanityClient.fetch(
+      `*[_id == $userId][0]{ _id, _type }`,
+      { userId }
+    );
 
     if (!userDoc) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    console.log(`Authenticated ${userDoc._type} with ID ${userId}`);
+    console.log(`🔐 Authenticated ${userDoc._type} with ID ${userId}`);
 
-    let responsePayload: Record<string, unknown> = { userType: userDoc._type };
+    let responsePayload: Record<string, any> = { userType: userDoc._type };
 
     if (userDoc._type === 'customer') {
       const [orders, quotes] = await Promise.all([
         sanityClient.fetch(`*[_type == "order" && customer._ref == $userId]`, { userId }),
         sanityClient.fetch(`*[_type == "quote" && customer._ref == $userId]`, { userId }),
       ]);
-      responsePayload = { ...responsePayload, orders, quotes };
+      responsePayload.orders = orders;
+      responsePayload.quotes = quotes;
     } else if (userDoc._type === 'vendor') {
       const appointments = await sanityClient.fetch(
         `*[_type == "appointment" && vendor._ref == $userId]`,
         { userId }
       );
-      responsePayload = { ...responsePayload, appointments };
+      responsePayload.appointments = appointments;
     } else {
       return res.status(400).json({ message: 'Unsupported user type' });
     }
 
-    return res.status(200).setHeader('Cache-Control', 'no-store').json(responsePayload);
-  } catch (err: unknown) {
-    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-    console.error('JWT auth error:', errorMessage);
+    return res
+      .setHeader('Cache-Control', 'no-store')
+      .status(200)
+      .json(responsePayload);
+  } catch (err: any) {
+    console.error('❌ JWT verification failed:', err.message || err);
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
 }

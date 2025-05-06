@@ -17,39 +17,29 @@ const sanity = createClient({
   token: process.env.SANITY_API_TOKEN,
 });
 
+const allowedOrigins = [
+  'https://fasmotorsports.com',
+  'https://www.fasmotorsports.com',
+  'https://vendor.fasmotorsports.com',
+  'https://fasmotorsports.io',
+  'https://www.fasmotorsports.io',
+  'http://localhost:4321',
+];
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (!process.env.SANITY_API_TOKEN) {
-    return res.status(500).json({ message: 'Server misconfigured: missing SANITY_API_TOKEN' });
-  }
+  const origin = req.headers.origin || '';
 
-  if (!JWT_SECRET) {
-    return res.status(500).json({ message: 'Server misconfigured: missing JWT_SECRET' });
-  }
-
-  const allowedOrigins = [
-    'https://fasmotorsports.com',
-    'https://www.fasmotorsports.com',
-    'https://vendor.fasmotorsports.com',
-    'https://fasmotorsports.io',
-    'https://www.fasmotorsports.io',
-    'http://localhost:4321',
-  ];
-  const origin = req.headers.origin;
-
-  if (origin && !allowedOrigins.includes(origin)) {
-    return res.status(403).json({ message: 'Origin not allowed' });
-  }
-
-  if (origin) {
+  if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
+
   res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Vary', 'Origin');
   res.setHeader('Cache-Control', 'no-store');
 
   if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     return res.status(200).end();
   }
 
@@ -57,11 +47,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
 
+  if (!JWT_SECRET || !process.env.SANITY_API_TOKEN) {
+    return res.status(500).json({ message: 'Server misconfigured: missing env vars' });
+  }
+
   try {
     const cookies = req.headers.cookie ? cookie.parse(req.headers.cookie) : {};
     const token = cookies.token;
 
-    console.log("Incoming request to /api/me", { origin, cookies, token });
+    console.log("🔐 /api/me request", {
+      origin,
+      hasCookieHeader: !!req.headers.cookie,
+      tokenPresent: !!token,
+      rawCookieHeader: req.headers.cookie,
+    });
 
     if (!token) {
       return res.status(401).json({ message: 'Missing authentication token' });
@@ -69,8 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
 
-    const now = Math.floor(Date.now() / 1000);
-    if (decoded.exp && decoded.exp < now) {
+    if (decoded.exp && decoded.exp < Math.floor(Date.now() / 1000)) {
       return res.status(401).json({ message: 'Token has expired' });
     }
 
@@ -97,13 +95,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ user });
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-    console.error('Auth error:', errorMessage);
+    console.error('❌ Auth error:', errorMessage);
 
     return res.status(401).json({
-      message:
-        errorMessage.includes('jwt expired')
-          ? 'Token has expired'
-          : 'Invalid or expired token',
+      message: errorMessage.includes('jwt expired') ? 'Token has expired' : 'Invalid or expired token',
     });
   }
 }

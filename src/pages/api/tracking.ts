@@ -15,42 +15,38 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ message: 'Missing or invalid tracking number' }, { status: 400 });
   }
 
-  let url = `https://api.shipengine.com/v1/tracking?tracking_number=${trackingNumber}`;
+  const url = new URL('https://api.shipengine.com/v1/tracking');
+  url.searchParams.append('tracking_number', trackingNumber);
   if (carrierCode && typeof carrierCode === 'string') {
-    url += `&carrier_code=${carrierCode}`;
+    url.searchParams.append('carrier_code', carrierCode);
   }
 
   try {
-    const response = await fetch(url, {
+    const response = await fetch(url.toString(), {
       headers: {
         'API-Key': SHIPENGINE_API_KEY,
         'Content-Type': 'application/json',
       },
     });
 
-    const responseBody = await response.json();
+    const data = await response.json();
 
     if (!response.ok) {
       return NextResponse.json(
-        { message: 'Failed to retrieve tracking info', error: responseBody },
+        { message: 'Failed to retrieve tracking info', error: data },
         { status: response.status }
       );
     }
 
     const {
-      carrier_name,
-      tracking_number,
-      status_description,
-      estimated_delivery_date,
-    } = responseBody;
+      carrier_name: carrier,
+      tracking_number: trackingNumber,
+      status_description: status,
+      estimated_delivery_date: eta,
+    } = data;
 
-    return new NextResponse(
-      JSON.stringify({
-        carrier: carrier_name,
-        trackingNumber: tracking_number,
-        status: status_description,
-        eta: estimated_delivery_date,
-      }),
+    return NextResponse.json(
+      { carrier, trackingNumber, status, eta },
       {
         status: 200,
         headers: {
@@ -59,8 +55,8 @@ export async function GET(req: NextRequest) {
         },
       }
     );
-  } catch (error: unknown) {
-    console.error('Tracking error:', error instanceof Error ? error.message : error);
+  } catch (error) {
+    console.error('Tracking API error:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }

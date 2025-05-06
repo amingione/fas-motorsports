@@ -29,19 +29,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
+
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Vary', 'Origin');
 
-  // Handle preflight requests
+  // Preflight
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  // Enforce POST method
   if (req.method !== 'POST') {
-    res.setHeader('Allow', ['POST']);
     return res.status(405).json({ message: `Method ${req.method} not allowed` });
   }
 
@@ -74,26 +73,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       { expiresIn: '7d' }
     );
 
-    // Send login notification email (non-blocking)
-    try {
-      await resend.emails.send({
-        from: 'FAS Motorsports <no-reply@updates.fasmotorsports.com>',
-        to: email,
-        subject: 'Login Successful',
-        html: `<p>Hello ${customer.firstName || 'there'}, you just signed in to FAS Motorsports.</p>`,
-      });
-    } catch (err: unknown) {
-      console.error('Login email failed to send:', err instanceof Error ? err.message : err);
-    }
-
-    // Set secure cookie with JWT
+    // Set secure cookie
     res.setHeader('Set-Cookie', serialize('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      sameSite: 'none',
       path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7,
     }));
+
+    // Non-blocking email
+    resend.emails.send({
+      from: 'FAS Motorsports <no-reply@updates.fasmotorsports.com>',
+      to: email,
+      subject: 'Login Successful',
+      html: `<p>Hello ${customer.firstName || 'there'}, you just signed in to FAS Motorsports.</p>`,
+    }).catch(err => console.error('Login email failed to send:', err));
 
     return res.status(200).json({
       user: {

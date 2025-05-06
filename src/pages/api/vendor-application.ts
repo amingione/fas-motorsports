@@ -17,36 +17,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     phone = '',
     businessType = '',
     message = ''
-  } = req.body;
+  } = req.body || {};
 
-  // Clean inputs
   const sanitized = {
-    businessName: businessName.toString().trim(),
-    contactName: contactName.toString().trim(),
-    email: email.toString().trim().toLowerCase(),
-    phone: phone.toString().trim(),
-    businessType: businessType.toString().trim(),
-    message: message.toString().trim(),
+    businessName: String(businessName).trim(),
+    contactName: String(contactName).trim(),
+    email: String(email).trim().toLowerCase(),
+    phone: String(phone).trim(),
+    businessType: String(businessType).trim(),
+    message: String(message).trim(),
   };
 
-  // Email validation
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sanitized.email);
 
-  if (!sanitized.businessName) {
-    return res.status(400).json({ message: 'Business name is required' });
-  }
-
-  if (!sanitized.contactName) {
-    return res.status(400).json({ message: 'Contact name is required' });
-  }
-
-  if (!isValidEmail) {
-    return res.status(400).json({ message: 'A valid email is required' });
-  }
-
-  if (!sanitized.phone) {
-    return res.status(400).json({ message: 'Phone number is required' });
-  }
+  if (!sanitized.businessName) return res.status(400).json({ message: 'Business name is required' });
+  if (!sanitized.contactName) return res.status(400).json({ message: 'Contact name is required' });
+  if (!isValidEmail) return res.status(400).json({ message: 'A valid email is required' });
+  if (!sanitized.phone) return res.status(400).json({ message: 'Phone number is required' });
 
   try {
     const existing = await client.fetch(
@@ -58,7 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(409).json({ message: 'A vendor with this email has already applied' });
     }
 
-    const doc = {
+    const newDoc = {
       _type: 'vendorApplication',
       ...sanitized,
       submittedAt: new Date().toISOString(),
@@ -66,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       approved: false
     };
 
-    await client.create(doc);
+    await client.create(newDoc);
 
     try {
       await resend.emails.send({
@@ -76,12 +63,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         react: VendorApplicationConfirmation({ name: sanitized.businessName }),
       });
     } catch (emailErr) {
-      console.error('Error sending confirmation email:', emailErr);
+      console.error('[Email Error] Failed to send vendor confirmation:', emailErr);
+      // We don't block submission on email failure
     }
 
     return res.status(200).json({ message: 'Application submitted successfully' });
   } catch (err) {
-    console.error('Vendor application error:', err, 'Request Body:', req.body);
+    console.error('[Vendor Application Error]:', err, 'Payload:', req.body);
     return res.status(500).json({ message: 'Internal Server Error' });
   }
 }
