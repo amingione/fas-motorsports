@@ -70,8 +70,9 @@ export default function VendorApplicationPage() {
     }
 
     try {
-      const res = await fetch('/api/vendor-application', {
+      const res = await fetch('https://fasmotorsports.io/api/vendor-application', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(trimmedData),
       });

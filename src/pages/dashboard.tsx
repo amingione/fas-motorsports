@@ -27,7 +27,7 @@ export default function Dashboard() {
   useEffect(() => {
     async function fetchUserAndOrders() {
       try {
-        const meRes = await fetch('/api/me', {
+        const meRes = await fetch('https://fasmotorsports.io/api/me', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
@@ -38,7 +38,7 @@ export default function Dashboard() {
         const { user } = await meRes.json();
         setUser(user);
 
-        const res = await fetch('/api/userData', {
+        const res = await fetch('https://fasmotorsports.io/api/userData', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },

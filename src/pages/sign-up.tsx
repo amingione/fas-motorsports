@@ -29,8 +29,9 @@ export default function SignUpPage() {
     }
 
     try {
-      const res = await fetch('/api/register', {
+      const res = await fetch('https:fasmotorsports.io/api/register', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, firstName, lastName, userRole }),
       });
