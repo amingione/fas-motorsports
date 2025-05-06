@@ -1,12 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import jwt from 'jsonwebtoken';
+import cookie from 'cookie';
+import { createClient } from '@sanity/client';
 
 interface DecodedToken {
   _id: string;
   exp?: number;
 }
-import cookie from 'cookie';
-import { createClient } from '@sanity/client';
 
 const JWT_SECRET = process.env.JWT_SECRET || '';
 const sanity = createClient({
@@ -18,15 +18,21 @@ const sanity = createClient({
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Check required env vars
   if (!process.env.SANITY_API_TOKEN) {
     return res.status(500).json({ message: 'Server misconfigured: missing SANITY_API_TOKEN' });
   }
 
+  if (!JWT_SECRET) {
+    return res.status(500).json({ message: 'Server misconfigured: missing JWT_SECRET' });
+  }
+
+  // Handle CORS
   const allowedOrigins = [
     'https://fasmotorsports.com',
     'https://vendor.fasmotorsports.com',
+    'https://fasmotorsports.io',
     'http://localhost:4321',
-    'https://fasmotorsports.io'
   ];
   const origin = req.headers.origin;
 
@@ -41,6 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).end();
   }
 
+  // Restrict to GET method
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
@@ -48,6 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const cookies = req.headers.cookie ? cookie.parse(req.headers.cookie) : {};
     const token = cookies.token;
+
     console.log("Incoming request to /api/me", {
       origin,
       cookies,
@@ -60,11 +68,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
 
+    // Token expiration check
     const now = Math.floor(Date.now() / 1000);
     if (decoded.exp && decoded.exp < now) {
       return res.status(401).json({ message: 'Token has expired' });
     }
 
+    // Sanity user query
     const user = await sanity.fetch(
       `*[_id == $id][0]{
         _id,
@@ -89,6 +99,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error';
     console.error('Auth error:', errorMessage);
-    return res.status(401).json({ message: 'Invalid or expired token' });
+
+    return res.status(401).json({
+      message:
+        errorMessage.includes('jwt expired')
+          ? 'Token has expired'
+          : 'Invalid or expired token',
+    });
   }
 }

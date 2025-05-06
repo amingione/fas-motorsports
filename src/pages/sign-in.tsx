@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
+import Cookies from 'js-cookie';
+import { useRouter } from 'next/router';
 
 export default function SignInPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -17,17 +20,13 @@ export default function SignInPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      // Defensive: check content-type before parsing as JSON
       const contentType = res.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         throw new Error('Unexpected server response. Please try again later.');
       }
       const data = await res.json();
 
-      // Fallback: If server did not set the cookie, set it client-side (not HttpOnly, so less secure)
-      // Best practice: Server should set 'Set-Cookie: token=<JWT>; Path=/; HttpOnly; Secure; SameSite=Lax'
       if (data.token) {
-        // Store token in cookie from client (not ideal for HttpOnly, but fallback if server doesn't set it)
         document.cookie = `token=${data.token}; path=/; secure; samesite=lax`;
       }
 
@@ -39,22 +38,28 @@ export default function SignInPage() {
         throw new Error(data.message || 'Login failed. Please try again later.');
       }
 
-      // Token is now stored in a secure cookie, no need to handle it here
-
       const userRes = await fetch('/api/me');
-
       if (!userRes.ok) {
         throw new Error('Failed to fetch user profile');
       }
-
       const user = await userRes.json();
 
+      Cookies.set('userRole', user._type, { expires: 30 });
+
+      const isLocal = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+      const vendorURL = isLocal
+        ? 'http://localhost:3001/dashboard'
+        : 'https://vendor.fasmotorsports.com/dashboard';
+      const customerURL = isLocal
+        ? 'http://localhost:3000/dashboard'
+        : 'https://fasmotorsports.com/dashboard';
+
       if (user._type === 'vendor') {
-        window.location.href = 'https://vendor.fasmotorsports.com/dashboard';
+        router.push(vendorURL);
       } else if (user._type === 'customer') {
-        window.location.href = 'https://fasmotorsports.com/dashboard';
+        router.push(customerURL);
       } else {
-        window.location.href = 'https://fasmotorsports.com';
+        router.push('/');
       }
     } catch (err: unknown) {
       if (err instanceof Error) {

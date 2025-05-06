@@ -43,7 +43,15 @@ export default function VendorApplicationPage() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^[0-9\-\+]{9,15}$/;
 
-    if (!trimmedData.businessName || !trimmedData.contactName || !trimmedData.email || !trimmedData.phone || !trimmedData.resaleId || !trimmedData.taxId || !trimmedData.businessAddress) {
+    if (
+      !trimmedData.businessName ||
+      !trimmedData.contactName ||
+      !trimmedData.email ||
+      !trimmedData.phone ||
+      !trimmedData.resaleId ||
+      !trimmedData.taxId ||
+      !trimmedData.businessAddress
+    ) {
       setStatus('❌ Please fill out all required fields.');
       setIsSubmitting(false);
       return;
@@ -61,18 +69,23 @@ export default function VendorApplicationPage() {
       return;
     }
 
-    const res = await fetch('/api/vendor-application', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(trimmedData),
-    });
+    try {
+      const res = await fetch('/api/vendor-application', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(trimmedData),
+      });
 
-    if (res.ok) {
-      setApplicationSubmitted(true);
-    } else if (res.status === 409) {
-      setStatus('❌ A vendor with this email already applied.');
-    } else {
-      setStatus('❌ Something went wrong. Please try again later.');
+      if (res.ok) {
+        setApplicationSubmitted(true);
+      } else if (res.status === 409) {
+        setStatus('❌ A vendor with this email already applied.');
+      } else {
+        setStatus(`❌ Something went wrong: ${res.statusText}`);
+      }
+    } catch (error) {
+      console.error('Application submission error:', error);
+      setStatus('❌ Network error — please check your connection and try again.');
     }
 
     setIsSubmitting(false);
@@ -91,19 +104,24 @@ export default function VendorApplicationPage() {
         </div>
       ) : (
         <div>
-          <h1 className="relative text-2xl mt-30 text-white font-ethno"><span className="font-borg text-primary">F.a.S.</span> Motorsports</h1>
+          <h1 className="relative text-2xl mt-30 text-white font-ethno">
+            <span className="font-borg text-primary">F.a.S.</span> Motorsports
+          </h1>
           <h2 className="text-2xl font-captain rem-1.5 text-secondary">Vendor Application</h2>
-          <form onSubmit={handleSubmit} className="space-y-4 bg-black/30 pt-3 px-5 border-white mt-15 mb-10 mx-auto max-w-xl">
-            <input type="text" name="businessName" aria-label="Business Name" placeholder="Business Name" value={formData.businessName} onChange={handleChange} required className="w-full p-2 border-black/50 bg-black/40 rounded" />
-            <input type="text" name="contactName" aria-label="Contact Name" placeholder="Contact Name" value={formData.contactName} onChange={handleChange} required className="w-full bg-black/40 p-2 border-black/50 rounded" />
-            <input type="email" name="email" aria-label="Email" placeholder="Email" value={formData.email} onChange={handleChange} required className="w-full bg-black/40 p-2 border-black/50 rounded" />
-            <input type="tel" name="phone" aria-label="Phone Number" placeholder="Phone Number" value={formData.phone} onChange={handleChange} required className="w-full bg-black/40 p-2 border-black/50 rounded" />
-            <input type="text" name="businessType" aria-label="Business Type" placeholder="Business Type" value={formData.businessType} onChange={handleChange} className="w-full bg-black/40 p-2 border-black/50 rounded" />
-            <input type="text" name="resaleId" aria-label="Resale Certificate ID" placeholder="Resale Certificate ID" value={formData.resaleId} onChange={handleChange} required className="w-full p-2 border-black/50 bg-black/40 rounded" />
-            <input type="text" name="taxId" aria-label="Tax ID (EIN)" placeholder="Tax ID (EIN)" value={formData.taxId} onChange={handleChange} required className="w-full p-2 border-black/50 bg-black/40 rounded" />
-            <input type="text" name="website" aria-label="Business Website" placeholder="Business Website" value={formData.website} onChange={handleChange} className="w-full p-2 border-black/50 bg-black/40 rounded" />
-            <input type="text" name="businessAddress" aria-label="Business Address" placeholder="Business Address" value={formData.businessAddress} onChange={handleChange} required className="w-full p-2 border-black/50 bg-black/40 rounded" />
-            <textarea name="message" aria-label="Additional Information" placeholder="Additional Information" value={formData.message} onChange={handleChange} className="w-full p-2 border-black/50 bg-black/40 rounded" rows={4}></textarea>
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-4 bg-black/30 pt-3 px-5 border-white mt-15 mb-10 mx-auto max-w-xl"
+          >
+            <input type="text" name="businessName" placeholder="Business Name" value={formData.businessName} onChange={handleChange} required className="w-full p-2 border-black/50 bg-black/40 rounded" />
+            <input type="text" name="contactName" placeholder="Contact Name" value={formData.contactName} onChange={handleChange} required className="w-full bg-black/40 p-2 border-black/50 rounded" />
+            <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required className="w-full bg-black/40 p-2 border-black/50 rounded" />
+            <input type="tel" name="phone" placeholder="Phone Number" value={formData.phone} onChange={handleChange} required className="w-full bg-black/40 p-2 border-black/50 rounded" />
+            <input type="text" name="businessType" placeholder="Business Type" value={formData.businessType} onChange={handleChange} className="w-full bg-black/40 p-2 border-black/50 rounded" />
+            <input type="text" name="resaleId" placeholder="Resale Certificate ID" value={formData.resaleId} onChange={handleChange} required className="w-full p-2 border-black/50 bg-black/40 rounded" />
+            <input type="text" name="taxId" placeholder="Tax ID (EIN)" value={formData.taxId} onChange={handleChange} required className="w-full p-2 border-black/50 bg-black/40 rounded" />
+            <input type="text" name="website" placeholder="Business Website" value={formData.website} onChange={handleChange} className="w-full p-2 border-black/50 bg-black/40 rounded" />
+            <input type="text" name="businessAddress" placeholder="Business Address" value={formData.businessAddress} onChange={handleChange} required className="w-full p-2 border-black/50 bg-black/40 rounded" />
+            <textarea name="message" placeholder="Additional Information" value={formData.message} onChange={handleChange} className="w-full p-2 border-black/50 bg-black/40 rounded" rows={4}></textarea>
             <button
               type="submit"
               className="text-primary font-cyber px-4 py-2 rounded disabled:opacity-50"
@@ -111,7 +129,11 @@ export default function VendorApplicationPage() {
             >
               {isSubmitting ? 'Submitting...' : 'Submit Application'}
             </button>
-            {status && <p className={`text-sm mt-2 ${status.startsWith('✅') ? 'text-green-600 font-semibold' : status.startsWith('❌') ? 'text-red-600 font-semibold' : 'text-gray-700'}`}>{status}</p>}
+            {status && (
+              <p className={`text-sm mt-2 ${status.startsWith('✅') ? 'text-green-600 font-semibold' : status.startsWith('❌') ? 'text-red-600 font-semibold' : 'text-gray-700'}`}>
+                {status}
+              </p>
+            )}
           </form>
         </div>
       )}

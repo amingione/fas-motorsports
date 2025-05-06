@@ -21,8 +21,9 @@ export async function POST(req: NextRequest) {
   try {
     const { email } = await req.json();
 
-    if (!email) {
-      return NextResponse.json({ message: 'Email is required' }, { status: 400 });
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      return NextResponse.json({ message: 'Valid email is required' }, { status: 400 });
     }
 
     const customer = await sanity.fetch(`*[_type == "customer" && email == $email][0]`, { email });
@@ -32,7 +33,8 @@ export async function POST(req: NextRequest) {
     }
 
     const token = jwt.sign({ _id: customer._id }, JWT_SECRET, { expiresIn: '15m' });
-    const resetLink = `https://fasmotorsports.io/reset-password?token=${token}`;
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:4321';
+    const resetLink = `${baseUrl}/reset-password?token=${token}`;
 
     const html = await render(
       React.createElement(PasswordResetEmail, { name: customer.firstName, resetLink })
@@ -47,7 +49,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message: 'Password reset email sent' });
   } catch (err) {
-    console.error('Password reset email error:', err);
+    console.error('Password reset email error:', err instanceof Error ? err.message : err);
     return NextResponse.json({ message: 'Failed to send email' }, { status: 500 });
   }
 }
