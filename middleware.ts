@@ -3,7 +3,9 @@ import type { NextRequest } from 'next/server'
 
 const allowedOrigins = [
   'https://fasmotorsports.com',
+  'https://www.fasmotorsports.com',
   'http://localhost:4321',
+  'http://localhost:3000',
 ]
 
 export function middleware(req: NextRequest) {
@@ -31,4 +33,8 @@ export function middleware(req: NextRequest) {
   res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 
   return res
+}
+
+export const config = {
+  matcher: '/api/:path*',
 }
