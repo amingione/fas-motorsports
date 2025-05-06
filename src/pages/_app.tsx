@@ -1,5 +1,5 @@
-import '@/styles/global.css';
-import '@/styles/theme-fas.css';
+import '../app/global.css';
+import '../app/theme-fas.css';
 import 'nprogress/nprogress.css'; // Import nprogress styles
 
 import Head from 'next/head';
