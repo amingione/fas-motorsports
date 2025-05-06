@@ -29,6 +29,17 @@ const allowedOrigins = [
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const origin = req.headers.origin || '';
 
+  if (req.method === 'OPTIONS') {
+    if (allowedOrigins.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Vary', 'Origin');
+    return res.status(200).end();
+  }
+
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
@@ -38,10 +49,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Vary', 'Origin');
   res.setHeader('Cache-Control', 'no-store');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
 
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method Not Allowed' });
