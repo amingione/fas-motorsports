@@ -76,8 +76,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .setHeader('Cache-Control', 'no-store')
       .status(200)
       .json(responsePayload);
-  } catch (err: any) {
-    console.error('❌ JWT verification failed:', err.message || err);
-    return res.status(401).json({ message: 'Invalid or expired token' });
-  }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error('❌ JWT verification failed:', errorMessage);
+      return res.status(401).json({ message: 'Invalid or expired token' });
+    }
 }
