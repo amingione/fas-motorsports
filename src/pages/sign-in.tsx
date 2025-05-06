@@ -36,7 +36,7 @@ export default function SignInPage() {
       }
 
       if (data.token) {
-        document.cookie = `token=${data.token}; path=/; secure; samesite=Lax`;
+        document.cookie = `token=${data.token}; path=/; secure; samesite=none`;
       }
 
       // ✅ Get user info
@@ -54,7 +54,7 @@ export default function SignInPage() {
       const user = await userRes.json();
 
       // ✅ Store user role in cookie
-      Cookies.set('userRole', user._type, { expires: 30, sameSite: 'Lax', secure: true });
+      Cookies.set('userRole', user._type, { expires: 30, sameSite: 'none', secure: true });
 
       // ✅ Route by role and environment
       const isLocal = typeof window !== 'undefined' && window.location.hostname === 'localhost';
