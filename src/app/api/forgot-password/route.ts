@@ -10,27 +10,9 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const { email } = body;
 
-  const resetLink = `https://fasmotorsports.io/reset-password?token=12345`; // Placeholder token
-  const name = 'User'; // Replace with actual user name from Sanity
-
-  const html = await render(PasswordResetEmail({ name, resetLink }));
-  await resend.emails.send({
-    from: FROM_EMAIL,
-    to: email,
-    subject: 'FAS Motorsports Password Reset',
-    html,
-  });
-
-  return NextResponse.json({ message: 'Password reset email sent' });
-}
-
-export async function OPTIONS(_req: NextRequest) {
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': 'http://localhost:3000',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  });
-}
+    // Simulate password reset logic (replace with actual user lookup)
+    const resetLink = `https://fasmotorsports.io/reset-password?token=12345`;
+  
+    // Return a simple response for now
+    return NextResponse.json({ message: 'Password reset link generated', resetLink });
+  }
