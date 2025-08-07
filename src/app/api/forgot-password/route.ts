@@ -1,7 +1,7 @@
 import { createClient } from '@sanity/client';
 import { Resend } from 'resend';
 import { render } from '@react-email/render';
-import { PasswordResetEmail } from '../../../emails/PasswordResetEmail';
+import PasswordResetEmail from '../../../emails/PasswordResetEmail';
 import React from 'react';
 import jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';

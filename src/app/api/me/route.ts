@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 
 const sanity = createClient({
-  projectId: process.env.SANITY_PROJECT_ID!,
-  dataset: process.env.SANITY_DATASET || 'production',
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
   apiVersion: '2023-01-01',
   useCdn: false,
   token: process.env.SANITY_API_TOKEN!,
@@ -29,11 +29,11 @@ export async function GET(req: NextRequest) {
 
     console.log('Fetching user with _id:', decoded._id);
     const user = await sanity.fetch(
-      `*[_type == "customer" && _id == $id][0] {
+      `*[_type == "vendor" && _id == $id][0] {
         _id,
         email,
-        firstName,
-        lastName
+        name,
+        status
       }`,
       { id: decoded._id }
     );
@@ -43,18 +43,15 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
-    console.log('Fetching orders for customerId:', decoded._id);
+    console.log('Fetching orders for vendorId:', decoded._id);
     const orders = await sanity.fetch(
-      `*[_type == "order" && customer._ref == $customerId] {
-        _id,
-        orderDate,
-        total,
-        items[] {
-          product->title,
-          quantity
-        }
+      `*[_type == "vendor" && _id == $vendorId][0].orders[] {
+        orderId,
+        status,
+        amount,
+        orderDate
       }`,
-      { customerId: decoded._id }
+      { vendorId: decoded._id }
     );
 
     return NextResponse.json({ user, orders }, { status: 200 });
@@ -64,7 +61,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function OPTIONS(req: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
     headers: {
