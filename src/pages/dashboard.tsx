@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 
 interface User {
   _id: string;
@@ -23,10 +24,10 @@ export default function Dashboard() {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   async function fetchUserAndOrders() {
     const token = localStorage.getItem('token') || '';
-    console.log('Local Storage Token:', token);
     if (!token) {
       throw new Error('No authentication token found. Please log in.');
     }
@@ -37,15 +38,15 @@ export default function Dashboard() {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log('API Response Status:', meRes.status);
+
       if (!meRes.ok) {
         const errorText = await meRes.text();
         throw new Error(`API error: ${meRes.status} - ${errorText || 'Unknown error'}`);
       }
+
       const data = await meRes.json();
       return data as DashboardData;
     } catch (err) {
-      console.error('Failed to fetch user and orders:', err instanceof Error ? err.message : err);
       throw err;
     }
   }
@@ -54,25 +55,78 @@ export default function Dashboard() {
     setLoading(true);
     fetchUserAndOrders()
       .then(data => setDashboardData(data))
-      .catch(err => setError(err.message))
+      .catch(err => {
+        setError(err.message);
+        setTimeout(() => router.push('/sign-in'), 4000);
+      })
       .finally(() => setLoading(false));
-  }, []); // Empty dependency array for mount-only effect
+  }, []);
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error} <button onClick={() => window.location.href = '/sign-in'}>Log In</button></div>;
+  if (loading) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center text-white px-4"
+        style={{
+          backgroundImage: "url('/images/about page background FAS.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        Loading...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        className="min-h-screen flex flex-col items-center justify-center text-white px-4 text-center"
+        style={{
+          backgroundImage: "url('/images/about page background FAS.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <h2>Please sign in to view your dashboard</h2>
+        <a
+          href="/sign-in"
+          style={{
+            color: '#4ea5ff',
+            textDecoration: 'underline',
+            marginTop: '1rem',
+            display: 'inline-block',
+          }}
+        >
+          Log in
+        </a>
+      </div>
+    );
+  }
 
   return (
-    <div>
+    <div
+      style={{
+        padding: '2rem',
+        color: 'white',
+        minHeight: '100vh',
+        backgroundImage: "url('/images/about page background FAS.png')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
       <h1>Dashboard</h1>
       {dashboardData && (
         <div>
-          <h2>Welcome, {dashboardData.user.firstName} {dashboardData.user.lastName}</h2>
+          <h2>
+            Welcome, {dashboardData.user.firstName} {dashboardData.user.lastName}
+          </h2>
           <h3>Orders</h3>
           {dashboardData.orders.length > 0 ? (
             <ul>
               {dashboardData.orders.map(order => (
                 <li key={order._id}>
-                  Order #{order._id} - {new Date(order.orderDate).toLocaleDateString()} - Total: ${order.total}
+                  Order #{order._id} - {new Date(order.orderDate).toLocaleDateString()} - Total: $
+                  {order.total}
                   <ul>
                     {order.items.map(item => (
                       <li key={item.product.title}>

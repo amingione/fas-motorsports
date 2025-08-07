@@ -11,17 +11,24 @@ export default function SignIn() {
     e.preventDefault();
     setError(null);
 
-    const res = await fetch('/api/sign-in', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      localStorage.setItem('token', data.token);
-      window.location.href = '/dashboard';
-    } else {
-      setError(data.message || 'Sign-in failed');
+    try {
+      const res = await fetch('/api/sign-in', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      console.log('Sign-in response status:', res.status); // Debug log
+      const data = await res.json();
+      console.log('Sign-in response data:', data); // Debug log
+      if (res.ok) {
+        localStorage.setItem('token', data.token);
+        window.location.href = '/dashboard';
+      } else {
+        setError(data.message || 'Sign-in failed');
+      }
+    } catch (err) {
+      console.error('Sign-in fetch error:', err); // Debug error
+      setError('Failed to connect to server');
     }
   };
 

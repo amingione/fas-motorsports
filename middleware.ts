@@ -7,7 +7,9 @@ const allowedOrigins = [
   'http://localhost:4321',
   'http://localhost:3000',
   'https://fasmotorsports.io',
-  'https://www.fasmotorsports.io'
+  'https://www.fasmotorsports.io',
+  
+
 ]
 
 export function middleware(req: NextRequest) {

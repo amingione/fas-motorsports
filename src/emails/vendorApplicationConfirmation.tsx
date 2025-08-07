@@ -7,7 +7,7 @@ import { Section } from '@react-email/section';
 import { Text } from '@react-email/text';
 import { Link } from '@react-email/link';
 
-export default function VendorApplicationConfirmationEmail({ name }: { name: string }) {
+export default function VendorApplicationConfirmationEmail({ name, applicationDate }: { name: string; applicationDate: string | Date }) {
   return (
     <Html lang="en">
       <Head />
@@ -26,7 +26,7 @@ export default function VendorApplicationConfirmationEmail({ name }: { name: str
               Thank you for applying, {name}!
             </Text>
             <Text style={{ fontSize: '16px', lineHeight: '1.5' }}>
-              We’ve received your vendor application and our team is currently reviewing it.
+              We’ve received your vendor application <p><strong>Application Date:</strong> {new Date(applicationDate).toLocaleDateString()}</p> and our team will review it promptly.
             </Text>
             <Text style={{ fontSize: '16px', lineHeight: '1.5' }}>
               You can expect to hear back from us within 48 business hours. If approved, you’ll receive an email with further onboarding steps to access your vendor dashboard and begin offering your products or services through FAS Motorsports.

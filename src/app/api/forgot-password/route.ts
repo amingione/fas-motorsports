@@ -1,14 +1,14 @@
 import { createClient } from '@sanity/client';
 import { Resend } from 'resend';
 import { render } from '@react-email/render';
-import { PasswordResetEmail } from '@/emails/PasswordResetEmail';
+import { PasswordResetEmail } from '../../../emails/PasswordResetEmail';
 import React from 'react';
 import jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
 
 const sanity = createClient({
   projectId: process.env.SANITY_PROJECT_ID!,
-  dataset: 'production',
+  dataset: process.env.SANITY_DATASET || 'production',
   apiVersion: '2023-01-01',
   useCdn: false,
   token: process.env.SANITY_API_TOKEN!,
@@ -55,4 +55,6 @@ export async function POST(req: NextRequest) {
     const errorMessage = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ message: errorMessage }, { status: 500 });
   }
+
+  
 }
