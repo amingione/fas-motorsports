@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ message: 'Application received' });
 }
 
-export async function OPTIONS(req: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
     headers: {

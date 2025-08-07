@@ -3,17 +3,8 @@ import * as React from 'react';
 export function WelcomeEmail({ name }: { name: string }) {
   return (
     <html lang="en">
-      <head>
-        <meta charSet="UTF-8" />
-        <title>Welcome to FAS Motorsports</title>
-      </head>
-      <body style={{ fontFamily: 'Arial, sans-serif', backgroundColor: '#111', color: '#fff', padding: '40px', margin: 0 }}>
-        <div style={{ maxWidth: '600px', margin: '0 auto', background: '#1a1a1a', borderRadius: '8px', padding: '24px', border: '1px solid #333' }}>
-          <img
-            src="https://www.fasmotorsports.com/images/faslogochroma.png"
-            alt="FAS Motorsports Logo"
-            style={{ display: 'block', margin: '0 auto 20px', maxWidth: '180px' }}
-          />
+      <body>
+        <div>
           <h1 style={{ color: '#ea1d26' }}>Welcome to FAS Motorsports</h1>
           <p>Hello {name || 'there'},</p>
           <p>Thanks for joining the FAS Motorsports community. Your account is now active!</p>
