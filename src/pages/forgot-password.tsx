@@ -19,9 +19,17 @@ export default function ForgotPasswordPage() {
         body: JSON.stringify({ email }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to send reset email');
+      if (!res.ok) {
+        const text = await res.text();
+        try {
+          const data = text ? JSON.parse(text) : { message: 'Server error' };
+          throw new Error(data.message || 'Failed to send reset email');
+        } catch (parseError) {
+          throw new Error('Server returned invalid response');
+        }
+      }
 
+      const data = await res.json();
       setMessage('Reset link sent! Please check your email.');
       setEmail('');
     } catch (err: unknown) {

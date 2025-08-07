@@ -1,115 +1,93 @@
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { useState, useEffect } from 'react';
+
+interface User {
+  _id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+}
+
+interface Order {
+  _id: string;
+  orderDate: string;
+  total: number;
+  items: { product: { title: string }; quantity: number }[];
+}
+
+interface DashboardData {
+  user: User;
+  orders: Order[];
+}
 
 export default function Dashboard() {
-  interface Order {
-    _id: string;
-    title: string;
-    status: string;
-  }
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  interface User {
-    email: string;
-    firstName?: string;
-    lastName?: string;
-    quotes?: {
-      quoteId: string;
-      status: string;
-      dateRequested: string;
-      notes?: string;
-    }[];
-  }
-
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [user, setUser] = useState<User | null>(null);
-  const [quotes, setQuotes] = useState<User['quotes']>([] as User['quotes']);
-
-  useEffect(() => {
-    async function fetchUserAndOrders() {
-      try {
-        const meRes = await fetch('https://fasmotorsports.io/api/me', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
-
-        if (!meRes.ok) return;
-
-        const { user } = await meRes.json();
-        setUser(user);
-
-        const res = await fetch('https://fasmotorsports.io/api/userData', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
-
-        const data = await res.json();
-        setOrders(data.orders || []);
-        setQuotes(data.quotes || []);
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-      }
+  async function fetchUserAndOrders() {
+    const token = localStorage.getItem('token') || '';
+    console.log('Local Storage Token:', token);
+    if (!token) {
+      throw new Error('No authentication token found. Please log in.');
     }
 
-    fetchUserAndOrders();
-  }, []);
+    try {
+      const meRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log('API Response Status:', meRes.status);
+      if (!meRes.ok) {
+        const errorText = await meRes.text();
+        throw new Error(`API error: ${meRes.status} - ${errorText || 'Unknown error'}`);
+      }
+      const data = await meRes.json();
+      return data as DashboardData;
+    } catch (err) {
+      console.error('Failed to fetch user and orders:', err instanceof Error ? err.message : err);
+      throw err;
+    }
+  }
+
+  useEffect(() => {
+    setLoading(true);
+    fetchUserAndOrders()
+      .then(data => setDashboardData(data))
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []); // Empty dependency array for mount-only effect
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error} <button onClick={() => window.location.href = '/sign-in'}>Log In</button></div>;
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center bg-fit text-white px-4"
-      style={{ backgroundImage: "url('/images/about page background FAS.png')" }}
-    >
-      <div className="max-w-4xl mx-auto space-y-6">
-        {user ? (
-          <>
-            <h1 className="text-4xl text-primary font-borg tracking-wider">F.a.S.</h1>
-            <h1 className="text-4xl text-white font-ethno tracking-wider">Motorsports</h1>
-            <p className="text-lg font-light text-gray-300">
-              Welcome back, {user.firstName || user.email}! Below you&apos;ll find your recent orders, saved quotes, and current builds.
-            </p>
-
-            {/* Orders Section */}
-            <div className="border border-white/10 rounded-lg p-6 bg-white/5 shadow-md">
-              <h2 className="text-xl font-kwajong text-white mb-4">Your Orders</h2>
-              {orders.length === 0 ? (
-                <p className="text-sm text-gray-400">No orders yet.</p>
-              ) : (
-                <ul className="text-sm text-gray-300 space-y-2">
-                  {orders.map(order => (
-                    <li key={order._id}>
-                      {order.title} — {order.status}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            {/* Saved Quotes Section */}
-            <div className="border border-white/10 rounded-lg p-6 bg-white/5 shadow-md">
-              <h2 className="text-xl font-kwajong text-white mb-4">Saved Quotes</h2>
-              {quotes?.length === 0 ? (
-                <p className="text-sm text-gray-400">
-                  You haven&apos;t saved any quotes yet. Start building one through the FAS garage.
-                </p>
-              ) : (
-                <ul className="text-sm text-gray-300 space-y-2">
-                  {quotes?.map(quote => (
-                    <li key={quote.quoteId}>
-                      Quote #{quote.quoteId} — {quote.status} ({new Date(quote.dateRequested).toLocaleDateString()})
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </>
-        ) : (
-          <div className="text-center">
-            <h1 className="text-3xl font-bold mb-4">Please sign in to view your dashboard</h1>
-            <Link href="/sign-in" className="text-blue-500 underline">Log in</Link>
-          </div>
-        )}
-      </div>
+    <div>
+      <h1>Dashboard</h1>
+      {dashboardData && (
+        <div>
+          <h2>Welcome, {dashboardData.user.firstName} {dashboardData.user.lastName}</h2>
+          <h3>Orders</h3>
+          {dashboardData.orders.length > 0 ? (
+            <ul>
+              {dashboardData.orders.map(order => (
+                <li key={order._id}>
+                  Order #{order._id} - {new Date(order.orderDate).toLocaleDateString()} - Total: ${order.total}
+                  <ul>
+                    {order.items.map(item => (
+                      <li key={item.product.title}>
+                        {item.product.title} x {item.quantity}
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No orders found.</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
