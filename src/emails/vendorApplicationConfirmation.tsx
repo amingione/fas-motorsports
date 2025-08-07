@@ -17,7 +17,6 @@ export default function VendorApplicationConfirmation({
       <p><strong>Application Date:</strong> {new Date(applicationDate).toLocaleDateString()}</p>
       <p>Our sales team will review your application and contact you within 48 hours. If you have any questions, feel free to reach out.</p>
       <p>Best regards,<br />FAS Motorsports Team</p>
-      {/* Remove <img> or replace with <Image> if needed */}
     </div>
   );
 }
