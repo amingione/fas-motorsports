@@ -1,4 +1,3 @@
-// src/emails/PasswordResetEmail.tsx
 import React from 'react';
 
 interface PasswordResetEmailProps {
