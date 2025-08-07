@@ -4,15 +4,15 @@ import { useRouter } from 'next/router';
 interface User {
   _id: string;
   email: string;
-  firstName: string;
-  lastName: string;
+  name: string;
+  status: string;
 }
 
 interface Order {
-  _id: string;
+  orderId: string;
+  status: string;
+  amount: number;
   orderDate: string;
-  total: number;
-  items: { product: { title: string }; quantity: number }[];
 }
 
 interface DashboardData {
@@ -26,114 +26,49 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  async function fetchUserAndOrders() {
-    const token = localStorage.getItem('token') || '';
-    if (!token) {
-      throw new Error('No authentication token found. Please log in.');
-    }
-
-    try {
-      const meRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!meRes.ok) {
-        const errorText = await meRes.text();
-        throw new Error(`API error: ${meRes.status} - ${errorText || 'Unknown error'}`);
-      }
-
-      const data = await meRes.json();
-      return data as DashboardData;
-    } catch (err) {
-      throw err;
-    }
-  }
-
   useEffect(() => {
     setLoading(true);
-    fetchUserAndOrders()
-      .then(data => setDashboardData(data))
-      .catch(err => {
-        setError(err.message);
-        setTimeout(() => router.push('/sign-in'), 4000);
+    const token = localStorage.getItem('token') || '';
+    console.log('Local Storage Token:', token);
+    if (!token) {
+      router.push('/sign-in');
+      return;
+    }
+
+    fetch('/api/me', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => {
+        console.log('API Response Status:', res.status);
+        if (!res.ok) {
+          throw new Error(`API error: ${res.status}`);
+        }
+        return res.json();
       })
+      .then((data) => setDashboardData(data as DashboardData))
+      .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [router]); // Added router to dependency array
 
-  if (loading) {
-    return (
-      <div
-        className="min-h-screen flex items-center justify-center text-white px-4"
-        style={{
-          backgroundImage: "url('/images/about page background FAS.png')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
-        Loading...
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div
-        className="min-h-screen flex flex-col items-center justify-center text-white px-4 text-center"
-        style={{
-          backgroundImage: "url('/images/about page background FAS.png')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
-        <h2>Please sign in to view your dashboard</h2>
-        <a
-          href="/sign-in"
-          style={{
-            color: '#4ea5ff',
-            textDecoration: 'underline',
-            marginTop: '1rem',
-            display: 'inline-block',
-          }}
-        >
-          Log in
-        </a>
-      </div>
-    );
-  }
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error} <button onClick={() => router.push('/sign-in')}>Log In</button></div>;
 
   return (
-    <div
-      style={{
-        padding: '2rem',
-        color: 'white',
-        minHeight: '100vh',
-        backgroundImage: "url('/images/about page background FAS.png')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
-    >
-      <h1>Dashboard</h1>
+    <div className="min-h-screen bg-gray-900 text-white p-6">
+      <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
       {dashboardData && (
         <div>
-          <h2>
-            Welcome, {dashboardData.user.firstName} {dashboardData.user.lastName}
-          </h2>
-          <h3>Orders</h3>
+          <h2 className="text-xl mb-2">Welcome, {dashboardData.user.name}</h2>
+          <p>Email: {dashboardData.user.email}</p>
+          <p>Status: {dashboardData.user.status}</p>
+          <h3 className="text-lg mt-4 mb-2">Orders</h3>
           {dashboardData.orders.length > 0 ? (
-            <ul>
-              {dashboardData.orders.map(order => (
-                <li key={order._id}>
-                  Order #{order._id} - {new Date(order.orderDate).toLocaleDateString()} - Total: $
-                  {order.total}
-                  <ul>
-                    {order.items.map(item => (
-                      <li key={item.product.title}>
-                        {item.product.title} x {item.quantity}
-                      </li>
-                    ))}
-                  </ul>
+            <ul className="list-disc pl-5">
+              {dashboardData.orders.map((order) => (
+                <li key={order.orderId}>
+                  Order #{order.orderId}: {order.status} (Total: ${order.amount}), Date: {new Date(order.orderDate).toLocaleDateString()}
                 </li>
               ))}
             </ul>

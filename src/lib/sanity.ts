@@ -8,10 +8,10 @@ export const sanityClient = createClient({
   projectId,
   dataset,
   apiVersion,
-  useCdn: process.env.NODE_ENV === 'production', // Use CDN in production, false for ISR
-  token: process.env.SANITY_API_TOKEN, // Token for write access
+  useCdn: process.env.NODE_ENV === 'production',
+  token: process.env.SANITY_API_TOKEN,
 });
 
-export async function sanityFetch<T>(query: string, params: Record<string, any> = {}) {
+export async function sanityFetch<T>(query: string, params: Record<string, unknown> = {}) {
   return sanityClient.fetch<T>(query, params, { cache: 'force-cache', next: { revalidate: 60 } });
 }
